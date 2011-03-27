@@ -2,10 +2,10 @@
 var dom = {};
 
 dom = require('./decision');
-dom.player = require('./player');
-dom.cards = require('./cards');
-dom.decision = require('./decision');
-
+dom.player = require('./player').player;
+dom.cards = require('./cards').cards;
+dom.card = require('./cards').card;
+dom.utils = require('./utils');
 
 dom.game = function(app) {
 	this.app_ = app;
@@ -14,7 +14,7 @@ dom.game = function(app) {
 
 
 dom.game.prototype.addPlayer = function() {
-	var p = new dom.Player(this);
+	var p = new dom.player(this);
 	this.players.push(p);
 };
 
@@ -36,7 +36,7 @@ dom.game.prototype.decision = function(dec, cb) {
 	}, function(res) {
 		res--;
 		cb(dec.options[res].key);
-	}, dom.bind(this.decision, this, dec, cb));
+	}, dom.utils.bind(this.decision, this, dec, cb));
 
 };
 
@@ -68,6 +68,10 @@ function send(str, p, s, f) {
 	process.stdout.write(str);
 }
 
-process.stdout.write("Hello, World!\n");
+
+console.log(dom);
+var thegame = new dom.game(null);
+thegame.addPlayer();
+console.log(thegame);
 
 

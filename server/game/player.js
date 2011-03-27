@@ -1,15 +1,21 @@
 
 var dom = {};
 
+dom.cards = require('./cards').cards;
+dom.card = require('./cards').card;
+dom.utils = require('./utils');
+
 // static variables
-var playerCount_ = 0;
+var playerCount = 0;
 
 dom.player = function(game) {
-	this.id_ = dom.playerCount_++;
+	this.id_ = playerCount++;
 	this.deck_ = dom.cards.starterDeck();
 	this.discards_ = [];
 	this.inPlay_ = [];
-	this.hand_ = this.draw(5);
+
+	this.hand_ = [];
+	this.draw(5);
 
 	this.game_ = game;
 
@@ -48,7 +54,7 @@ dom.player.prototype.turnActionPhase = function() {
 		return;
 	}
 
-	var options = cardsToOptions(this.hand_);
+	var options = dom.utils.cardsToOptions(this.hand_);
 	options.push(new Option('buy', 'Proceed to Buy phase'));
 	var dec = new Decision(p, options, 'Play an Action card or proceed to the Buy phase.', [
 		'Actions: ' + this.actions,
@@ -56,7 +62,7 @@ dom.player.prototype.turnActionPhase = function() {
 		'Coin: ' + this.coin
 	]);
 
-	this.game.decision(dec, dom.bind(function(key) {
+	this.game.decision(dec, dom.utils.bind(function(key) {
 		if(key == 'buy') {
 			this.turnBuyPhase();
 			return;
@@ -186,5 +192,5 @@ dom.player.prototype.shuffleDiscards = function() {
 };
 
 
-exports = dom.player;
+exports.player = dom.player;
 

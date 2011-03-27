@@ -1,6 +1,5 @@
 
-
-dom.bind = function(fn, selfObj, var_args) {
+exports.bind = function(fn, selfObj, var_args) {
   var context = selfObj || goog.global;
 
   if (arguments.length > 2) {
@@ -21,13 +20,11 @@ dom.bind = function(fn, selfObj, var_args) {
 
 
 /** @param {Array.<Card>} */
-dom.cardsToOptions = function(cards) {
+exports.cardsToOptions = function(cards) {
 	var options = [];
 	for(var i = 0; i < cards.length; i++) {
 		options.push(new Option('card['+i+']', cards[i].name));
 	}
 	return options;
 };
-
-
 

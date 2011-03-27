@@ -157,6 +157,7 @@ dom.cards.starterDeck = function() {
 //24	Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
 //25	Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
 
-exports = dom.card;
+exports.cards = dom.cards;
+exports.card = dom.card;
 
 
