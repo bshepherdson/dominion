@@ -10,16 +10,13 @@ dom.utils = require('./utils');
 dom.game = function(app) {
 	this.app_ = app;
 	this.players = [];
-	this.turn_ = -1;
+	this.turn_ = -1; // gets bumped by nextPlayer before starting.
 };
 
 
 dom.game.prototype.addPlayer = function() {
 	var p = new dom.player(this);
 	this.players.push(p);
-	if(this.turn_ < 0) {
-		this.turn_ = 0;
-	}
 };
 
 
@@ -88,9 +85,9 @@ function send(str, p, s, f) {
 
 var thegame = new dom.game(null);
 thegame.addPlayer();
+thegame.addPlayer();
 
-thegame.players[0].turnStart();
-
+thegame.nextPlayer();
 
 
 exports.game = dom.game;

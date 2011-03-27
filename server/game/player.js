@@ -133,28 +133,16 @@ dom.player.prototype.turnBuyPhase = function() {
 
 
 dom.player.prototype.turnCleanupPhase = function() {
-	//console.log(this.discards_);
-	//console.log(this.deck_);
-	//console.log(this.hand_);
 	this.phase_ = dom.player.TurnPhases.CLEANUP;
-	console.log(this.discards_);
 	for(var i = 0; i < this.inPlay_.length; i++) {
 		this.discards_.push(this.inPlay_[i]);
 	}
 	for(var i = 0; i < this.hand_.length; i++) {
 		this.discards_.push(this.hand_[i]);
 	}
-	console.log(this.discards_);
-	//this.discards_.concat(this.inPlay_, this.hand_);
 	this.inPlay_ = [];
 	this.hand_ = [];
 	this.draw(5);
-	console.log(this.discards_);
-
-	//console.log('================================================');
-	//console.log(this.discards_);
-	//console.log(this.deck_);
-	//console.log(this.hand_);
 
 	this.turnEnd();
 };
