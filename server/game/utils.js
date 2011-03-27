@@ -32,3 +32,9 @@ exports.cardsToOptions = function(cards) {
 	return options;
 };
 
+exports.append = function(to, from) {
+	for(var i = 0; i < from.length; i++) {
+		to.push(from[i]);
+	}
+};
+

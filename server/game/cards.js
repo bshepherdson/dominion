@@ -123,6 +123,25 @@ rules.repeatUpTo = function(times, message, done, getOpts, f) {
 };
 
 
+rules.yesNo = function(message, yes, no) {
+	return function(p, c) {
+		var opts = [
+			new dom.Option('yes', 'Yes'),
+			new dom.Option('no', 'No')
+		];
+		var dec = new dom.Decision(p, opts, message, []);
+		p.game_.decision(dec, function(key) {
+			if(key == 'yes') {
+				yes(p);
+			} else {
+				no(p);
+			}
+			c();
+		});
+	};
+};
+
+
 // trying to work out the process.
 // 1. rule needs to ask a user something and make a decision on the result.
 // 2. it calls a framework function with the Option array and a callback.
@@ -161,11 +180,18 @@ dom.cards['Chapel'] = new dom.card('Chapel', { 'Action': 1 }, 2, 'Trash up to 4 
 	})
 ]);
 
+dom.cards['Chancellor'] = new dom.card('Chancellor', { 'Action': 1}, 3, '+2 Coins. You may immediately put your deck into your discard pile.', [
+	rules.plusCoin(2),
+	rules.yesNo('Do you want to move your deck to your discard pile?', function(p) {
+		dom.utils.append(p.discards_, p.deck_);
+		p.deck_ = [];
+	}, function(p) { })
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Cellar'],
-		dom.cards['Chapel'],
+		dom.cards['Chancellor'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -183,8 +209,8 @@ dom.cards.starterDeck = function() {
 // the kingdom cards
 
 //#		Card			Set	Card Type				Cost	Rules
-//1		Cellar			Base	Action				$2	+1 Action, Discard any number of cards. +1 Card per card discarded.
-//2		Chapel			Base	Action				$2	Trash up to 4 cards from your hand.
+//1		*Cellar			Base	Action				$2	+1 Action, Discard any number of cards. +1 Card per card discarded.
+//2		*Chapel			Base	Action				$2	Trash up to 4 cards from your hand.
 //3		Moat			Base	Action - Reaction	$2	+2 Cards, When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that Attack.
 //4		Chancellor		Base	Action				$3	+2 Coins, You may immediately put your deck into your discard pile.
 //5		Village			Base	Action				$3	+1 Card, +2 Actions.
