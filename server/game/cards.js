@@ -188,6 +188,32 @@ dom.cards['Chancellor'] = new dom.card('Chancellor', { 'Action': 1}, 3, '+2 Coin
 	}, function(p) { })
 ]);
 
+dom.cards['Village'] = new dom.card('Village', { 'Action': 1 }, 3, '+1 Card. +2 Actions.', [ rules.plusCards(1), rules.plusActions(2) ]);
+
+dom.cards['Woodcutter'] = new dom.card('Woodcutter', { 'Action': 1 }, 3, '+1 Buy. +2 Coin.', [ rules.plusBuys(1), rules.plusCoin(2) ]);
+
+//dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 
+
+
+dom.cards['Gardens'] = new dom.card('Gardens', { 'Victory': 1 }, 4, 'Worth 1 Victory for every 10 cards in your deck (rounded down).', []);
+
+dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Trash a Copper from your hand. If you do, +3 Coin.', [
+	rules.maybe(function(p) {
+		for(var i = 0; i < p.hand_.length; i++) {
+			if(p.hand_[i].name == 'Copper') {
+				return true;
+			}
+		}
+		return false;
+	}, rules.yesNo('Do you want to trash a Copper for +3 Coin?', function(p) {
+		for(var i = 0; i < p.hand_.length; i++) {
+			if(p.hand_[i].name == 'Copper') {
+				p.removeFromHand(i);
+				p.coin += 3;
+			}
+		}
+	}, function(p){ }))
+]);
 
 dom.cards.starterDeck = function() {
 	return [
@@ -212,15 +238,15 @@ dom.cards.starterDeck = function() {
 //1		*Cellar			Base	Action				$2	+1 Action, Discard any number of cards. +1 Card per card discarded.
 //2		*Chapel			Base	Action				$2	Trash up to 4 cards from your hand.
 //3		Moat			Base	Action - Reaction	$2	+2 Cards, When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that Attack.
-//4		Chancellor		Base	Action				$3	+2 Coins, You may immediately put your deck into your discard pile.
-//5		Village			Base	Action				$3	+1 Card, +2 Actions.
-//6		Woodcutter		Base	Action				$3	+1 Buy, +2 Coins.
+//4		*Chancellor		Base	Action				$3	+2 Coins, You may immediately put your deck into your discard pile.
+//5		*Village		Base	Action				$3	+1 Card, +2 Actions.
+//6		*Woodcutter		Base	Action				$3	+1 Buy, +2 Coins.
 //7		Workshop		Base	Action				$3	Gain a card costing up to 4 Coins.
 //8		Bureaucrat		Base	Action - Attack		$4	Gain a silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
 //9		Feast			Base	Action				$4	Trash this card. Gain a card costing up to 5 Coins.
-//10	Gardens			Base	Victory				$4	Variable, Worth 1 Victory for every 10 cards in your deck (rounded down).
+//10	*Gardens		Base	Victory				$4	Variable, Worth 1 Victory for every 10 cards in your deck (rounded down).
 //11	Militia			Base	Action - Attack		$4	+2 Coins, Each other player discards down to 3 cards in his hand.
-//12	Moneylender		Base	Action				$4	Trash a Copper from your hand. If you do, +3 Coins.
+//12	*Moneylender	Base	Action				$4	Trash a Copper from your hand. If you do, +3 Coins.
 //13	Remodel			Base	Action				$4	Trash a card from your hand. Gain a card costing up to 2 Coins more than the trashed card.
 //14	Smithy			Base	Action				$4	+3 Cards.
 //15	Spy				Base	Action - Attack		$4	+1 Card, +1 Action, Each player (including you) reveals the top card of his deck and either discards it or puts it back, your chouce.
