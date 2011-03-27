@@ -108,6 +108,7 @@ dom.player.prototype.playAction = function(index) {
 
 	this.removeFromHand(index);
 	this.inPlay_.push(card);
+	this.actions--;
 
 	var rulesList;
 	if(typeof card.rules == 'object') { // array 
