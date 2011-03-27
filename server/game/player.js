@@ -4,18 +4,21 @@ var dom = {};
 dom.cards = require('./cards').cards;
 dom.card = require('./cards').card;
 dom.utils = require('./utils');
+dom.Decision = require('./decision').Decision;
+dom.Option = require('./decision').Option;
 
 // static variables
 var playerCount = 0;
 
 dom.player = function(game) {
 	this.id_ = playerCount++;
-	this.deck_ = dom.cards.starterDeck();
-	this.discards_ = [];
+	this.discards_ = dom.cards.starterDeck(); // start them in the discards
+	this.deck_ = [];                          // and an empty deck
 	this.inPlay_ = [];
 
+	this.shuffleDiscards_();                  // shuffle them into the deck
 	this.hand_ = [];
-	this.draw(5);
+	this.draw(5);                             // and draw
 
 	this.game_ = game;
 
@@ -55,14 +58,14 @@ dom.player.prototype.turnActionPhase = function() {
 	}
 
 	var options = dom.utils.cardsToOptions(this.hand_);
-	options.push(new Option('buy', 'Proceed to Buy phase'));
-	var dec = new Decision(p, options, 'Play an Action card or proceed to the Buy phase.', [
+	options.push(new dom.Option('buy', 'Proceed to Buy phase'));
+	var dec = new dom.Decision(this, options, 'Play an Action card or proceed to the Buy phase.', [
 		'Actions: ' + this.actions,
 		'Buys: ' + this.buys,
 		'Coin: ' + this.coin
 	]);
 
-	this.game.decision(dec, dom.utils.bind(function(key) {
+	this.game_.decision(dec, dom.utils.bind(function(key) {
 		if(key == 'buy') {
 			this.turnBuyPhase();
 			return;
@@ -130,11 +133,28 @@ dom.player.prototype.turnBuyPhase = function() {
 
 
 dom.player.prototype.turnCleanupPhase = function() {
-	// TODO: implement me properly
+	//console.log(this.discards_);
+	//console.log(this.deck_);
+	//console.log(this.hand_);
 	this.phase_ = dom.player.TurnPhases.CLEANUP;
-	this.discards_.concat(this.inPlay_, this.hand_);
+	console.log(this.discards_);
+	for(var i = 0; i < this.inPlay_.length; i++) {
+		this.discards_.push(this.inPlay_[i]);
+	}
+	for(var i = 0; i < this.hand_.length; i++) {
+		this.discards_.push(this.hand_[i]);
+	}
+	console.log(this.discards_);
+	//this.discards_.concat(this.inPlay_, this.hand_);
 	this.inPlay_ = [];
-	this.hand_ = this.draw(5);
+	this.hand_ = [];
+	this.draw(5);
+	console.log(this.discards_);
+
+	//console.log('================================================');
+	//console.log(this.discards_);
+	//console.log(this.deck_);
+	//console.log(this.hand_);
 
 	this.turnEnd();
 };
@@ -172,7 +192,7 @@ dom.player.prototype.discard = function(index) {
 };
 
 
-dom.player.prototype.shuffleDiscards = function() {
+dom.player.prototype.shuffleDiscards_ = function() {
 	var oldDeck = this.deck_;
 	var i = this.discards_.length;
 	if ( i == 0 ) return; // deck is unchanged

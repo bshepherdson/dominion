@@ -10,12 +10,16 @@ dom.utils = require('./utils');
 dom.game = function(app) {
 	this.app_ = app;
 	this.players = [];
+	this.turn_ = -1;
 };
 
 
 dom.game.prototype.addPlayer = function() {
 	var p = new dom.player(this);
 	this.players.push(p);
+	if(this.turn_ < 0) {
+		this.turn_ = 0;
+	}
 };
 
 
@@ -27,18 +31,31 @@ dom.game.prototype.decision = function(dec, cb) {
 	str += '\n';
 	str += dec.message + '\n';
 	for(var i = 0; i < dec.options.length; i++) {
-		str += (i+1) + ') ' + dec.options.text + '\n';
+		str += (i+1) + ') ' + dec.options[i].text + '\n';
 	}
 	str += 'Choice: ';
 
-	send(str, function(x) {
-		return res && (res+0) && res+0 > 0 && res+0 <= dec.options.length;
+	send(str, function(res) {
+		res = +res; // coerce to number
+		return res && res > 0 && res <= dec.options.length;
 	}, function(res) {
 		res--;
 		cb(dec.options[res].key);
 	}, dom.utils.bind(this.decision, this, dec, cb));
 
 };
+
+
+dom.game.prototype.nextPlayer = function() {
+	this.turn_++;
+	if(this.turn_ >= this.players.length) {
+		this.turn_ = 0;
+	}
+	this.players[this.turn_].turnStart();
+};
+
+
+// MAIN
 
 
 var stdin = process.openStdin();
@@ -69,9 +86,12 @@ function send(str, p, s, f) {
 }
 
 
-console.log(dom);
 var thegame = new dom.game(null);
 thegame.addPlayer();
-console.log(thegame);
 
+thegame.players[0].turnStart();
+
+
+
+exports.game = dom.game;
 

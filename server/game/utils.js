@@ -1,4 +1,7 @@
 
+var dom = {};
+dom.Option = require('./decision').Option;
+
 exports.bind = function(fn, selfObj, var_args) {
   var context = selfObj || goog.global;
 
@@ -23,7 +26,7 @@ exports.bind = function(fn, selfObj, var_args) {
 exports.cardsToOptions = function(cards) {
 	var options = [];
 	for(var i = 0; i < cards.length; i++) {
-		options.push(new Option('card['+i+']', cards[i].name));
+		options.push(new dom.Option('card['+i+']', cards[i].name));
 	}
 	return options;
 };
