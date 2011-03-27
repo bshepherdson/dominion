@@ -55,23 +55,6 @@ rules.plusCards = function(amount) {
 rules.nullRule = function(p, c) { c(); };
 
 
-function decisionHelper(done, match, failedMatch) {
-	return function(key) {
-		if(key == 'done') {
-			done();
-		} else {
-			var m = /\[(\d+)\]/.exec(key);
-			if(m) {
-				var index = m[1]; // [1] is the first capture group
-				match(index);
-			} else {
-				failedMatch();
-			}
-		}
-	};
-}
-
-
 rules.discardMany = function(callback) {
 	var internal = function(p, c) {
 		if(!p.temp.discarded) {
@@ -81,7 +64,7 @@ rules.discardMany = function(callback) {
 		var opts = dom.utils.cardsToOptions(p.hand_);
 		opts.push(new dom.Option('done', 'Done discarding'));
 		var dec = new dom.Decision(p, opts, 'Choose the next card to discard, or stop discarding.', []);
-		p.game_.decision(dec, decisionHelper(function() {
+		p.game_.decision(dec, dom.utils.decisionHelper(function() {
 			var discarded = p.temp.discarded;
 			p.temp.discarded = [];
 			callback(p, c, discarded);
@@ -112,7 +95,7 @@ rules.repeatUpTo = function(times, message, done, getOpts, f) {
 		var opts = getOpts(p);
 		opts.push(new dom.Option('done', done));
 		var dec = new dom.Decision(p, opts, message, []);
-		p.game_.decision(dec, decisionHelper(
+		p.game_.decision(dec, dom.utils.decisionHelper(
 			function() { c(); },
 			function(index) { f(p, index); internal(n-1, p,c); },
 			function() { internal(n, p, c); }
@@ -228,10 +211,6 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Woodcutter'],
-		dom.cards['Gardens'],
-		dom.cards['Moneylender'],
-		dom.cards['Village'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -243,6 +222,25 @@ dom.cards.starterDeck = function() {
 		dom.cards['Estate'],
 		dom.cards['Estate']
 	];
+};
+
+
+dom.cards.drawKingdom = function() {
+	return [
+		dom.cards['Cellar'],
+		dom.cards['Chapel'],
+		dom.cards['Chancellor'],
+		dom.cards['Village'],
+		dom.cards['Woodcutter'],
+		dom.cards['Gardens'],
+		dom.cards['Moneylender']
+	];
+};
+
+dom.cards.treasureValues = {
+	'Gold': 3,
+	'Silver': 2,
+	'Copper': 1
 };
 
 

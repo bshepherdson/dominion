@@ -38,3 +38,20 @@ exports.append = function(to, from) {
 	}
 };
 
+
+exports.decisionHelper = function(done, match, failedMatch) {
+	return function(key) {
+		if(key == 'done') {
+			done();
+		} else {
+			var m = /\[(\d+)\]/.exec(key);
+			if(m) {
+				var index = m[1]; // [1] is the first capture group
+				match(index);
+			} else {
+				failedMatch();
+			}
+		}
+	};
+};
+

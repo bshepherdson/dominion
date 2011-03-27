@@ -140,9 +140,63 @@ dom.player.prototype.runRules_ = function() {
 
 
 dom.player.prototype.turnBuyPhase = function() {
-	// TODO: implement me properly
 	this.phase_ = dom.player.TurnPhases.BUY;
-	this.turnCleanupPhase();
+
+	if(this.buys <= 0) {
+		this.turnCleanupPhase();
+		return;
+	}
+
+	// first go through the hand and use up any treasure cards
+	for(var i = 0; i < this.hand_.length; ){
+		var card = this.hand_[i];
+		if(card.types['Treasure']) {
+			this.removeFromHand(i);
+			this.discards_.push(card);
+			this.coin += dom.cards.treasureValues[card.name];
+		} else {
+			i++;
+		}
+	}
+
+	var options = [];
+	for(var i = 0; i < this.game_.kingdom.length; i++) {
+		var card = this.game_.kingdom[i].card;
+		if(this.game_.kingdom[i].count > 0 && card.cost <= this.coin) {
+			options.push(new dom.Option('card['+i+']', '('+ card.cost +') ' + card.name));
+		}
+	}
+	options.push(new dom.Option('done', 'Done buying. End your turn.'));
+	var dec = new dom.Decision(this, options, 'Buy cards or end your turn.', [
+		'Buys: ' + this.buys,
+		'Coin: ' + this.coin
+	]);
+
+	var p = this;
+	this.game_.decision(dec, dom.utils.decisionHelper(
+		function() {
+			p.turnCleanupPhase();
+		}, function(index) {
+			p.buyCard(index, false);
+			p.turnBuyPhase();
+		}, function() {
+			p.turnBuyPhase();
+		}));
+};
+
+
+/** @param {number} index Index into the kingdom.
+ *  @param {boolean} free Whether the purchase is free (in terms of Buys and Coin) or not.
+ */
+dom.player.prototype.buyCard = function(index, free) {
+	var inKingdom = this.game_.kingdom[index];
+	this.discards_.push(inKingdom.card);
+	inKingdom.count--;
+
+	if(!free) {
+		this.coin -= inKingdom.card.cost;
+		this.buys--;
+	}
 };
 
 
@@ -163,6 +217,7 @@ dom.player.prototype.turnCleanupPhase = function() {
 
 
 dom.player.prototype.turnEnd = function() {
+	console.log(this);
 	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
 	this.game_.nextPlayer();
 };

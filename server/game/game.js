@@ -11,6 +11,7 @@ dom.game = function(app) {
 	this.app_ = app;
 	this.players = [];
 	this.turn_ = -1; // gets bumped by nextPlayer before starting.
+	this.kingdom = [];
 };
 
 
@@ -40,6 +41,24 @@ dom.game.prototype.decision = function(dec, cb) {
 		cb(dec.options[res].key);
 	}, dom.utils.bind(this.decision, this, dec, cb));
 
+};
+
+
+dom.game.prototype.startGame = function() {
+	var cards = dom.cards.drawKingdom();
+	for(var i = 0; i < cards.length; i++) {
+		this.kingdom.push({ card: cards[i], count: 10 }); //TODO: Should be variable depending on number of players, etc.
+	}
+
+	this.kingdom.push({ card: dom.cards['Copper'], count: 1000 });
+	this.kingdom.push({ card: dom.cards['Silver'], count: 1000 });
+	this.kingdom.push({ card: dom.cards['Gold'], count: 1000 });
+	this.kingdom.push({ card: dom.cards['Estate'], count: 24-3*this.players.length });
+	this.kingdom.push({ card: dom.cards['Dutchy'], count: 12 });
+	this.kingdom.push({ card: dom.cards['Province'], count: 12 });
+	this.kingdom.push({ card: dom.cards['Curse'], count: 30 });
+
+	this.nextPlayer();
 };
 
 
@@ -111,7 +130,7 @@ var thegame = new dom.game(null);
 thegame.addPlayer();
 thegame.addPlayer();
 
-thegame.nextPlayer();
+thegame.startGame();
 
 inputDebug = function() {
 	console.log(thegame);
