@@ -119,7 +119,11 @@ dom.player.prototype.playAction = function(index) {
 
 	if(!rulesList) return;
 
-	this.rules_ = rulesList;
+	// gotta copy since we're going to consume them
+	this.rules_ = [];
+	for(var i = 0; i < rulesList.length; i++) {
+		this.rules_.push(rulesList[i]);
+	}
 	this.runRules_();
 };
 

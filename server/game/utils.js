@@ -1,9 +1,10 @@
 
+var global = this;
 var dom = {};
 dom.Option = require('./decision').Option;
 
 exports.bind = function(fn, selfObj, var_args) {
-  var context = selfObj || goog.global;
+  var context = selfObj || global;
 
   if (arguments.length > 2) {
     var boundArgs = Array.prototype.slice.call(arguments, 2);

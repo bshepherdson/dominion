@@ -54,6 +54,24 @@ rules.plusCards = function(amount) {
 };
 rules.nullRule = function(p, c) { c(); };
 
+
+function decisionHelper(done, match, failedMatch) {
+	return function(key) {
+		if(key == 'done') {
+			done();
+		} else {
+			var m = /\[(\d+)\]/.exec(key);
+			if(m) {
+				var index = m[1]; // [1] is the first capture group
+				match(index);
+			} else {
+				failedMatch();
+			}
+		}
+	};
+}
+
+
 rules.discardMany = function(callback) {
 	var internal = function(p, c) {
 		if(!p.temp.discarded) {
@@ -63,26 +81,45 @@ rules.discardMany = function(callback) {
 		var opts = dom.utils.cardsToOptions(p.hand_);
 		opts.push(new dom.Option('done', 'Done discarding'));
 		var dec = new dom.Decision(p, opts, 'Choose the next card to discard, or stop discarding.', []);
-		p.game_.decision(dec, function(key) {
-			if(key == 'done') {
-				var discarded = p.temp.discarded;
-				p.temp.discarded = [];
-				callback(p, c, discarded);
-			} else {
-				var match = /\[(\d+)\]/.exec(key);
-				if(match) {
-					var index = match[1]; // [1] is the first capture group
-					var card = p.discard(index);
-					p.temp.discarded.push(card);
-					internal(p, c);
-				} else {
-					internal(p, c);
-				}
-			}
-		});
+		p.game_.decision(dec, decisionHelper(function() {
+			var discarded = p.temp.discarded;
+			p.temp.discarded = [];
+			callback(p, c, discarded);
+		}, function(index) {
+			var card = p.discard(index);
+			p.temp.discarded.push(card);
+			internal(p, c);
+		}, function() {
+			internal(p, c);
+		}));
 	};
 
 	return internal;
+};
+
+
+/**
+ * @param {number} times The maximum number of times to repeat this function.
+ * @param {string} message The message displayed for each Decision.
+ * @param {string} done The 'done' message.
+ * @param {function} getOpts A function taking a player and returning an array of options.
+ * @param {function} f The function taking a player object and index called when a non-done decision is made.
+ */
+rules.repeatUpTo = function(times, message, done, getOpts, f) {
+	var internal = function(n, p, c) {
+		if(n <= 0) c(); // end
+
+		var opts = getOpts(p);
+		opts.push(new dom.Option('done', done));
+		var dec = new dom.Decision(p, opts, message, []);
+		p.game_.decision(dec, decisionHelper(
+			function() { c(); },
+			function(index) { f(p, index); internal(n-1, p,c); },
+			function() { internal(n, p, c); }
+		));
+	};
+
+	return dom.utils.bind(internal, null, times);
 };
 
 
@@ -116,10 +153,19 @@ dom.cards['Cellar'] = new dom.card('Cellar', { 'Action': 1 }, 2, '+1 Action. Dis
 	})
 ]);
 
+dom.cards['Chapel'] = new dom.card('Chapel', { 'Action': 1 }, 2, 'Trash up to 4 cards from your hand.', [
+	rules.repeatUpTo(4, 'Choose a card to trash.', 'Done trashing', function(p) {
+		return dom.utils.cardsToOptions(p.hand_);
+	}, function(p, index) {
+		p.removeFromHand(index); // remove it and don't put it anywhere
+	})
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Cellar'],
+		dom.cards['Chapel'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
