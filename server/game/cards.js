@@ -13,15 +13,17 @@
 //   * maybe anywhere in the JS code I can define a callback and say "ask this user this question, and hit this code with his response."
 //     * I think that's a workable, nicely JSful approach.
 
-dom.Card = function(name, types, cost, text, rules) {
+var dom = {};
+dom.card = {};
+dom.cards = {};
+
+dom.card = function(name, types, cost, text, rules) {
 	this.name = name;
 	this.types = types;
 	this.cost = cost;
 	this.text = text;
 	this.rules = rules;
 };
-
-dom.cards = {};
 
 
 // common card rules
@@ -48,12 +50,37 @@ rules.plusCards = function(amount) {
 };
 rules.nullRule = function(p) { return p; };
 
-rules.discardMany = function(p) {
-	var opts = handToOptions(p.hand);
-	opts.push(new dom.Option('done', 'Done discarding'));
-	dom.api.options(p.id, opts, function(p, opts, choice) {
-		if(choice.key == 'done') {
-			rules.
+rules.discardMany = function(callback) {
+	var internal = function(p) {
+		if(!p.temp.discarded) {
+			p.temp.discarded = [];
+		}
+
+		var opts = handToOptions(p.hand);
+		opts.push(new dom.Option('done', 'Done discarding'));
+		var dec = new dom.Decision(p, opts, 'Choose the next card to discard, or stop discarding.', []);
+		p.game.decision(dec, function(key) {
+			if(key == 'done') {
+				var discarded = p.temp.discarded;
+				p.temp.discarded = [];
+				callback(p, discarded);
+			} else {
+				var match = /\[(\d+)\]/.exec(key);
+				if(match) {
+					var index = match[1]; // [1] is the first capture group
+					var card = p.discard(index);
+					p.temp.discarded.push(card);
+					internal(p);
+				} else {
+					internal(p);
+				}
+			}
+		});
+	};
+
+	return internal;
+};
+
 
 // trying to work out the process.
 // 1. rule needs to ask a user something and make a decision on the result.
@@ -66,17 +93,39 @@ rules.discardMany = function(p) {
 // - the player object keeps track of the turn state: working its way through the rules on each card, the phases of the turn and so on.
 
 // first the common cards
-dom.cards['Gold']   = new Card('Gold',   { 'Treasure': 1 }, 6, '', rules.plusCoin(3));
-dom.cards['Silver'] = new Card('Silver', { 'Treasure': 1 }, 3, '', rules.plusCoin(2));
-dom.cards['Copper'] = new Card('Copper', { 'Treasure': 1 }, 0, '', rules.plusCoin(1));
+dom.cards['Gold']   = new dom.card('Gold',   { 'Treasure': 1 }, 6, '', rules.plusCoin(3));
+dom.cards['Silver'] = new dom.card('Silver', { 'Treasure': 1 }, 3, '', rules.plusCoin(2));
+dom.cards['Copper'] = new dom.card('Copper', { 'Treasure': 1 }, 0, '', rules.plusCoin(1));
 
-dom.cards['Province'] = new Card('Province', { 'Victory': 1 }, 8, '', rules.nullRule);
-dom.cards['Dutchy']   = new Card('Dutchy',   { 'Victory': 1 }, 5, '', rules.nullRule);
-dom.cards['Estate']   = new Card('Estate',   { 'Victory': 1 }, 2, '', rules.nullRule);
-dom.cards['Curse']    = new Card('Curse',    { 'Curse': 1 },   0, '', rules.nullRule);
+dom.cards['Province'] = new dom.card('Province', { 'Victory': 1 }, 8, '', rules.nullRule);
+dom.cards['Dutchy']   = new dom.card('Dutchy',   { 'Victory': 1 }, 5, '', rules.nullRule);
+dom.cards['Estate']   = new dom.card('Estate',   { 'Victory': 1 }, 2, '', rules.nullRule);
+dom.cards['Curse']    = new dom.card('Curse',    { 'Curse': 1 },   0, '', rules.nullRule);
 
 
 // and now the kingdom cards
+dom.cards['Cellar'] = new dom.card('Cellar', { 'Action': 1 }, 2, '+1 Action. Discard any number of cards. +1 Card per card discarded.', [
+	rules.plusActions(1),
+	rules.discardMany(function(p, discarded) {
+		p.draw(discarded.length);
+	})
+]);
+
+
+dom.cards.starterDeck = function() {
+	return [
+		dom.cards['Copper'],
+		dom.cards['Copper'],
+		dom.cards['Copper'],
+		dom.cards['Copper'],
+		dom.cards['Copper'],
+		dom.cards['Copper'],
+		dom.cards['Copper'],
+		dom.cards['Estate'],
+		dom.cards['Estate'],
+		dom.cards['Estate']
+	];
+};
 
 
 // the kingdom cards
@@ -107,3 +156,7 @@ dom.cards['Curse']    = new Card('Curse',    { 'Curse': 1 },   0, '', rules.null
 //23	Mine			Base	Action				$5	Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coins more; put it into your hand.
 //24	Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
 //25	Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
+
+exports = dom.card;
+
+

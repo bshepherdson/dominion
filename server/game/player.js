@@ -1,19 +1,26 @@
 
+var dom = {};
 
 // static variables
-dom.playerCount_ = 0;
+var playerCount_ = 0;
 
-dom.player = function() {
+dom.player = function(game) {
 	this.id_ = dom.playerCount_++;
-	this.deck_ = cards.starterDeck();
+	this.deck_ = dom.cards.starterDeck();
 	this.discards_ = [];
+	this.inPlay_ = [];
 	this.hand_ = this.draw(5);
+
+	this.game_ = game;
 
 	// turn data
 	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
 	this.actions = 0;
 	this.buys = 0;
 	this.coin = 0;
+
+	// used as a scratchpad to store things between callbacks
+	this.temp = {};
 };
 
 dom.player.TurnPhases = {
@@ -35,34 +42,102 @@ dom.player.prototype.turnStart = function() {
 };
 
 
-/** @param {Array.<Card>} */
-dom.options.cardsToOptions = function(cards) {
-	var options = [];
-	for(var i = 0; i < cards.length; i++) {
-		options.push(new Option('card['+i+']', cards[i].name));
-	}
-	return options;
-};
-
-
 dom.player.prototype.turnActionPhase = function() {
 	if(this.actions <= 0) {
 		this.turnBuyPhase();
 		return;
 	}
 
-	var actionCards = this.hand_.filter(function(c){ return c.types['Action'] });
-	var options = cardsToOptions(actionsCards);
+	var options = cardsToOptions(this.hand_);
 	options.push(new Option('buy', 'Proceed to Buy phase'));
-	var dec = new Decision(p, options, {
-		'Actions': this.actions,
-		'Buys': this.buys,
-		'Coin': this.coin
-	});
+	var dec = new Decision(p, options, 'Play an Action card or proceed to the Buy phase.', [
+		'Actions: ' + this.actions,
+		'Buys: ' + this.buys,
+		'Coin: ' + this.coin
+	]);
 
-	app.decision(dec, dom.bind(
+	this.game.decision(dec, dom.bind(function(key) {
+		if(key == 'buy') {
+			this.turnBuyPhase();
+			return;
+		}
+
+		var match = /\[(\d+)\]/.exec(key);
+		if(match) {
+			var index = match[1]; // [1] is the first capture group
+			this.playAction(index);
+			this.turnActionPhase();
+		} else {
+			this.turnActionPhase(); // just redo it, bad decision
+		}
+	}, this));
+};
 
 
+/** @param {number} index The index of the card in my hand. */
+dom.player.prototype.removeFromHand = function(index) {
+	var newHand = [];
+	newHand.length = this.hand_.length-1;
+	for(var i = 0; i < this.hand_.length; i++) {
+		if(index != i) {
+			newHand.push(this.hand_[i]);
+		}
+	}
+	this.hand_ = newHand;
+};
+
+
+/** @param {number} index The index of the card in my hand. */
+dom.player.prototype.playAction = function(index) {
+	if(index < 0 || index >= this.hand_.length) {
+		return;
+	}
+
+	var card = this.hand_[index];
+	if(!card.types['Action']) return;
+
+	this.removeFromHand(index);
+	this.inPlay_.push(card);
+
+	var rulesList;
+	if(typeof card.rules == 'object') { // array 
+		rulesList = card.rules;
+	} else {
+		rulesList = [ card.rules ]; // just a function
+	}
+
+	if(!rulesList) return;
+
+	for(var i = 0; i < rulesList.length; i++) {
+		rulesList[i](this);
+	}
+
+	// when that's done, we'll have made all the decisions we needed to make.
+};
+
+
+dom.player.prototype.turnBuyPhase = function() {
+	// TODO: implement me properly
+	this.phase_ = dom.player.TurnPhases.BUY;
+	this.turnCleanupPhase();
+};
+
+
+dom.player.prototype.turnCleanupPhase = function() {
+	// TODO: implement me properly
+	this.phase_ = dom.player.TurnPhases.CLEANUP;
+	this.discards_.concat(this.inPlay_, this.hand_);
+	this.inPlay_ = [];
+	this.hand_ = this.draw(5);
+
+	this.turnEnd();
+};
+
+
+dom.player.prototype.turnEnd = function() {
+	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
+	this.game_.nextPlayer();
+};
 
 
 /** @param {?number} optional number of cards */
@@ -80,6 +155,14 @@ dom.player.prototype.draw = function(opt_n) {
 		var card = this.deck_.pop();
 		this.hand_.push(card);
 	}
+};
+
+
+/** @param {number} index The index of the card to discard. */
+dom.player.prototype.discard = function(index) {
+	var card = this.hand_[index];
+	this.removeFromHand(index);
+	this.discards_.push(card);
 };
 
 
@@ -103,5 +186,5 @@ dom.player.prototype.shuffleDiscards = function() {
 };
 
 
-
+exports = dom.player;
 
