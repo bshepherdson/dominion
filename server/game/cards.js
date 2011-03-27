@@ -209,6 +209,21 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 	}, function(p){ }))
 ]);
 
+dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a card costing up to 4 Coin.', [
+	function(p, c) {
+		dom.utils.gainCardDecision(p, 'Gain a card costing up to 4 Coin', 'Gain nothing', [], function(card) { return card.cost <= 4; },
+			function(repeat) { 
+				return dom.utils.decisionHelper(
+					function() { c(); },
+					function(index) {
+						p.buyCard(index, true);
+						c();
+					}, repeat);
+			});
+	}]);
+
+//7		Workshop		Base	Action				$3	Gain a card costing up to 4 Coins.
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
@@ -233,7 +248,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Village'],
 		dom.cards['Woodcutter'],
 		dom.cards['Gardens'],
-		dom.cards['Moneylender']
+		dom.cards['Moneylender'],
+		dom.cards['Workshop']
 	];
 };
 

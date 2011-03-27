@@ -159,29 +159,21 @@ dom.player.prototype.turnBuyPhase = function() {
 		}
 	}
 
-	var options = [];
-	for(var i = 0; i < this.game_.kingdom.length; i++) {
-		var card = this.game_.kingdom[i].card;
-		if(this.game_.kingdom[i].count > 0 && card.cost <= this.coin) {
-			options.push(new dom.Option('card['+i+']', '('+ card.cost +') ' + card.name));
-		}
-	}
-	options.push(new dom.Option('done', 'Done buying. End your turn.'));
-	var dec = new dom.Decision(this, options, 'Buy cards or end your turn.', [
+	var p = this;
+	dom.utils.gainCardDecision(this, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
 		'Buys: ' + this.buys,
 		'Coin: ' + this.coin
-	]);
+	], function(card) { return card.cost <= p.coin; },
+	function(repeat) {
+		return dom.utils.decisionHelper(
+			function() { p.turnCleanupPhase(); },
+			function(index) {
+				p.buyCard(index, false);
+				p.turnBuyPhase();
+			},
+			function() { repeat(); });
+	});
 
-	var p = this;
-	this.game_.decision(dec, dom.utils.decisionHelper(
-		function() {
-			p.turnCleanupPhase();
-		}, function(index) {
-			p.buyCard(index, false);
-			p.turnBuyPhase();
-		}, function() {
-			p.turnBuyPhase();
-		}));
 };
 
 
