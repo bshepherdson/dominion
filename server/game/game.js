@@ -61,7 +61,13 @@ stdin.setEncoding('utf8');
 var inputSuccess;
 var inputFailure;
 var inputPredicate;
+var inputDebug;
 stdin.on('data', function(chunk) {
+	if(chunk == 'debug\n') {
+		inputDebug();
+		return;
+	}
+
 	if(!inputPredicate || !inputSuccess || !inputFailure) return;
 	if(inputPredicate(chunk)) {
 		inputSuccess(chunk);
@@ -86,13 +92,18 @@ function send(str, p, s, f) {
 
 // MAIN
 
-//var test = dom.utils.bind(function(x) {
-//	console.log(x);
-//}, this);
-//
-//test(3);
-//
-//process.exit();
+/*
+var test = dom.utils.bind(function(x,y,z) {
+	console.log(x);
+	console.log(y);
+	console.log(z);
+}, this, 4);
+
+test(3, 2);
+test(7, 1);
+
+process.exit();
+*/
 
 
 
@@ -102,6 +113,13 @@ thegame.addPlayer();
 
 thegame.nextPlayer();
 
+inputDebug = function() {
+	console.log(thegame);
+	for(var i=0; i < thegame.players.length; i++) {
+		console.log('=======================================');
+		console.log(thegame.players[i]);
+	}
+};
 
 exports.game = dom.game;
 
