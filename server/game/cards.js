@@ -142,6 +142,17 @@ rules.yesNo = function(message, yes, no) {
 };
 
 
+rules.maybe = function(pred, when) {
+	return function(p,c) {
+		if(pred(p)) {
+			when(p,c);
+		} else {
+			c();
+		}
+	};
+};
+
+
 // trying to work out the process.
 // 1. rule needs to ask a user something and make a decision on the result.
 // 2. it calls a framework function with the Option array and a callback.
@@ -217,7 +228,10 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Chancellor'],
+		dom.cards['Woodcutter'],
+		dom.cards['Gardens'],
+		dom.cards['Moneylender'],
+		dom.cards['Village'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
