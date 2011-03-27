@@ -30,6 +30,8 @@ dom.player = function(game) {
 
 	// used as a scratchpad to store things between callbacks
 	this.temp = {};
+	// used for the async rules handling
+	this.rules_ = [];
 };
 
 dom.player.TurnPhases = {
@@ -75,7 +77,7 @@ dom.player.prototype.turnActionPhase = function() {
 		if(match) {
 			var index = match[1]; // [1] is the first capture group
 			this.playAction(index);
-			this.turnActionPhase();
+			// don't call turnActionPhase. that'll be called by runRules_ when the rules are all done.
 		} else {
 			this.turnActionPhase(); // just redo it, bad decision
 		}
@@ -86,7 +88,6 @@ dom.player.prototype.turnActionPhase = function() {
 /** @param {number} index The index of the card in my hand. */
 dom.player.prototype.removeFromHand = function(index) {
 	var newHand = [];
-	newHand.length = this.hand_.length-1;
 	for(var i = 0; i < this.hand_.length; i++) {
 		if(index != i) {
 			newHand.push(this.hand_[i]);
@@ -117,11 +118,19 @@ dom.player.prototype.playAction = function(index) {
 
 	if(!rulesList) return;
 
-	for(var i = 0; i < rulesList.length; i++) {
-		rulesList[i](this);
+	this.rules_ = rulesList;
+	this.runRules_();
+};
+
+
+dom.player.prototype.runRules_ = function() {
+	if(this.rules_.length <= 0) {
+		this.turnActionPhase();
+		return;
 	}
 
-	// when that's done, we'll have made all the decisions we needed to make.
+	var rule = this.rules_.shift();
+	rule(this, dom.utils.bind(this.runRules_, this));
 };
 
 

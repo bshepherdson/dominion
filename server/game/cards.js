@@ -14,8 +14,11 @@
 //     * I think that's a workable, nicely JSful approach.
 
 var dom = {};
-dom.card = {};
 dom.cards = {};
+
+dom.Decision = require('./decision').Decision;
+dom.Option = require('./decision').Option;
+dom.utils = require('./utils');
 
 dom.card = function(name, types, cost, text, rules) {
 	this.name = name;
@@ -30,7 +33,7 @@ dom.card = function(name, types, cost, text, rules) {
 rules = {};
 function basicRule(field) {
 	return function(amount) {
-		return function(p) { p[field] += amount; };
+		return function(p,c) { p[field] += amount; c(); };
 	};
 }
 
@@ -42,37 +45,38 @@ rules.plusBuys = basicRule('buys');
 rules.plusActions = basicRule('actions');
 /** @param {number} */
 rules.plusCards = function(amount) {
-	return function(p) {
+	return function(p,c) {
 		for(var i=0; i < amount; i++) {
 			p.draw();
 		}
+		c();
 	};
 };
-rules.nullRule = function(p) { return p; };
+rules.nullRule = function(p, c) { c(); };
 
 rules.discardMany = function(callback) {
-	var internal = function(p) {
+	var internal = function(p, c) {
 		if(!p.temp.discarded) {
 			p.temp.discarded = [];
 		}
 
-		var opts = handToOptions(p.hand);
+		var opts = dom.utils.cardsToOptions(p.hand_);
 		opts.push(new dom.Option('done', 'Done discarding'));
 		var dec = new dom.Decision(p, opts, 'Choose the next card to discard, or stop discarding.', []);
-		p.game.decision(dec, function(key) {
+		p.game_.decision(dec, function(key) {
 			if(key == 'done') {
 				var discarded = p.temp.discarded;
 				p.temp.discarded = [];
-				callback(p, discarded);
+				callback(p, c, discarded);
 			} else {
 				var match = /\[(\d+)\]/.exec(key);
 				if(match) {
 					var index = match[1]; // [1] is the first capture group
 					var card = p.discard(index);
 					p.temp.discarded.push(card);
-					internal(p);
+					internal(p, c);
 				} else {
-					internal(p);
+					internal(p, c);
 				}
 			}
 		});
@@ -106,14 +110,16 @@ dom.cards['Curse']    = new dom.card('Curse',    { 'Curse': 1 },   0, '', rules.
 // and now the kingdom cards
 dom.cards['Cellar'] = new dom.card('Cellar', { 'Action': 1 }, 2, '+1 Action. Discard any number of cards. +1 Card per card discarded.', [
 	rules.plusActions(1),
-	rules.discardMany(function(p, discarded) {
+	rules.discardMany(function(p, c, discarded) {
 		p.draw(discarded.length);
+		c();
 	})
 ]);
 
 
 dom.cards.starterDeck = function() {
 	return [
+		dom.cards['Cellar'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],

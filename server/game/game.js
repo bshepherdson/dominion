@@ -83,6 +83,19 @@ function send(str, p, s, f) {
 }
 
 
+
+// MAIN
+
+//var test = dom.utils.bind(function(x) {
+//	console.log(x);
+//}, this);
+//
+//test(3);
+//
+//process.exit();
+
+
+
 var thegame = new dom.game(null);
 thegame.addPlayer();
 thegame.addPlayer();
