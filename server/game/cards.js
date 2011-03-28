@@ -548,10 +548,35 @@ dom.cards['Library'] = new dom.card('Library', { 'Action': 1 }, 5, 'Draw until y
 ]);
 
 
+dom.cards['Mine'] = new dom.card('Mine', { 'Action': 1 }, 5, 'Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coin more; put it into your hand.', [
+	function(p,c) {
+		dom.utils.handDecision(p, 'Choose a Treasure card from your hand to trash.', 'Trash nothing', function(card){ return card.types['Treasure']; },
+			function(index) {
+				var card = p.hand_[index];
+				p.removeFromHand(index);
+				if(card.name == 'Copper') {
+					p.hand_.push(dom.cards['Silver']);
+				} else if(card.name == 'Silver') {
+					p.hand_.push(dom.cards['Gold']);
+				} else {
+					p.hand_.push(dom.cards['Gold']);
+				}
+				c();
+			}, c);
+	}
+]);
+
+dom.cards['Market'] = new dom.card('Market', { 'Action': 1 }, 5, '+1 Card, +1 Action, +1 Buy, +1 Coin.', [
+	rules.plusCards(1),
+	rules.plusActions(1),
+	rules.plusBuys(1),
+	rules.plusCoin(1)
+]);
 
 
 dom.cards.starterDeck = function() {
 	return [
+		dom.cards['Mine'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -589,6 +614,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Festival'],
 		dom.cards['Laboratory'],
 		dom.cards['Library'],
+		dom.cards['Market'],
+		dom.cards['Mine'],
 	];
 };
 
@@ -623,8 +650,8 @@ dom.cards.treasureValues = {
 //19	*Festival		Base	Action				$5	+2 Actions, +1 Buy, +2 Coins.
 //20	*Laboratory		Base	Action				$5	+2 Cards, +1 Action.
 //21	*Library		Base	Action				$5	Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.
-//22	Market			Base	Action				$5	+1 Card, +1 Action, +1 Buy, +1 Coin.
-//23	Mine			Base	Action				$5	Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coins more; put it into your hand.
+//22	*Market			Base	Action				$5	+1 Card, +1 Action, +1 Buy, +1 Coin.
+//23	*Mine			Base	Action				$5	Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coins more; put it into your hand.
 //24	Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
 //25	Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
 
