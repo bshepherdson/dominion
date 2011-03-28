@@ -84,3 +84,34 @@ exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFu
 
 	repeat();
 };
+
+
+/**
+ * Chooses a card from (a subset of) the hand.
+ *
+ * @param {dom.player} p The player in question.
+ * @param {string} message The decision message.
+ * @param {?string} done The done message. null for no option.
+ * @param {dom.card -> boolean} cardPred Predicate to decide which cards to show.
+ * @param {index -> action} matchFunc Function to take the selected index and take action.
+ * @param {cont} cont Continuation to call when user selects 'done' (not on a match)
+ */
+exports.handDecision = function(p, message, done, cardPred, matchFunc, cont) {
+	var options = [];
+	for(var i = 0; i < p.hand_.length; i++) {
+		var card = p.hand_[i];
+		if(cardPred(card)){
+			options.push(new dom.Option('card['+i+']', card.name));
+		}
+	}
+	if(done){
+		options.push(new dom.Option('done', done));
+	}
+	var dec = new dom.Decision(p, options, message, []);
+
+	var repeat = function() {
+		p.game_.decision(dec, exports.decisionHelper(cont, matchFunc, repeat));
+	};
+	repeat();
+};
+

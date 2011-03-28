@@ -81,6 +81,26 @@ rules.discardMany = function(callback) {
 };
 
 
+rules.gainCard = function(name, f) {
+	return function(p,c) {
+		var inKingdom;
+		for(var i = 0; i < p.game_.kingdom.length; i++) {
+			if(p.game_.kingdom[i].card.name == name) {
+				inKingdom = p.game_.kingdom[i];
+				break;
+			}
+		}
+
+		if(!inKingdom || inKingdom.count <= 0) {
+			c(); // fail to gain the card
+		} else {
+			f(p, inKingdom.card);
+			inKingdom.count--;
+			c();
+		}
+	};
+};
+
 /**
  * @param {number} times The maximum number of times to repeat this function.
  * @param {string} message The message displayed for each Decision.
@@ -132,6 +152,37 @@ rules.maybe = function(pred, when) {
 		} else {
 			c();
 		}
+	};
+};
+
+
+rules.everyOtherPlayer = function(f) {
+	return function(p, c) {
+		var responses = {};
+		var sent = 0;
+		var completed = 0;
+		var doneSending = false;
+
+		var cont = function() {
+			completed++;
+			if(doneSending && completed >= sent) {
+				c();
+			}
+		};
+
+		for(var i = 0; i < p.game_.players.length; i++) {
+			if(p.id_ != p.game_.players[i].id_) {
+				sent++;
+				f(p, p.game_.players[i], cont);
+			}
+		}
+
+		doneSending = true;
+		if(completed >= sent) {
+			c(); // they've all returned already
+		}
+
+		// otherwise I just return and wait for the continuations to do their thing.
 	};
 };
 
@@ -222,10 +273,43 @@ dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a car
 			});
 	}]);
 
-//7		Workshop		Base	Action				$3	Gain a card costing up to 4 Coins.
+dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 }, 4, 'Gain a Silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).', [
+	rules.gainCard('Silver', function(p,card) { p.deck_.push(card); }),
+	rules.everyOtherPlayer(function(active, p, c) {
+		var victoryCards = p.hand_.filter(function(card) { return card.types['Victory']; });
+		if(victoryCards.length == 0) {
+			console.log('Player ' + p.id_ + ' reveals a hand with no victory cards.');
+			c();
+		} else if(victoryCards.length == 1) {
+			console.log('Player ' + p.id_ + ' has only one Victory card, a ' + victoryCards[0].name + ', and is forced to put it on his deck.');
+			for(var i = 0; i < p.hand_.length; i++) {
+				if(p.hand_[i].types['Victory']) {
+					var card = p.hand_[i];
+					p.removeFromHand(i);
+					p.deck_.push(card); // on top
+					break;
+				}
+			}
+			c();
+		} else {
+			// have to ask that player to decide which one to discard
+			console.log('Asking Player ' + p.id_ + ' for a decision.');
+			dom.utils.handDecision(p, 'Player ' + active.id_ + ' has played a Bureaucrat. Choose a Victory card from your hand to put on top of your deck.', null,
+				function(c) { return c.types['Victory']; },
+				function(index) {
+					var card = p.hand_[index];
+					console.log('He chose ' + card.name);
+					p.removeFromHand(index);
+					p.deck_.push(card);
+					c();
+				}, c);
+		}
+	})
+]);
 
 dom.cards.starterDeck = function() {
 	return [
+		dom.cards['Bureaucrat'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -249,7 +333,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Woodcutter'],
 		dom.cards['Gardens'],
 		dom.cards['Moneylender'],
-		dom.cards['Workshop']
+		dom.cards['Workshop'],
+		dom.cards['Bureaucrat']
 	];
 };
 
@@ -269,8 +354,8 @@ dom.cards.treasureValues = {
 //4		*Chancellor		Base	Action				$3	+2 Coins, You may immediately put your deck into your discard pile.
 //5		*Village		Base	Action				$3	+1 Card, +2 Actions.
 //6		*Woodcutter		Base	Action				$3	+1 Buy, +2 Coins.
-//7		Workshop		Base	Action				$3	Gain a card costing up to 4 Coins.
-//8		Bureaucrat		Base	Action - Attack		$4	Gain a silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
+//7		*Workshop		Base	Action				$3	Gain a card costing up to 4 Coins.
+//8		*Bureaucrat		Base	Action - Attack		$4	Gain a silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
 //9		Feast			Base	Action				$4	Trash this card. Gain a card costing up to 5 Coins.
 //10	*Gardens		Base	Victory				$4	Variable, Worth 1 Victory for every 10 cards in your deck (rounded down).
 //11	Militia			Base	Action - Attack		$4	+2 Coins, Each other player discards down to 3 cards in his hand.
