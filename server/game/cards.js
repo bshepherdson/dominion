@@ -482,6 +482,15 @@ dom.cards['Throne Room'] = new dom.card('Throne Room', { 'Action': 1 }, 4, 'Choo
 ]);
 
 
+dom.cards['Council Room'] = new dom.card('Council Room', { 'Action': 1 }, 5, '+4 Cards. +1 Buy. Each other player draws a card.', [
+	rules.plusCards(4),
+	rules.plusBuys(1),
+	rules.everyOtherPlayer(false, function(active, p, c) {
+		var f = rules.plusCards(1);
+		f(p,c);
+	})
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
@@ -518,6 +527,7 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Spy'],
 		dom.cards['Thief'],
 		dom.cards['Throne Room'],
+		dom.cards['Council Room'],
 	];
 };
 
@@ -548,7 +558,7 @@ dom.cards.treasureValues = {
 //15	*Spy			Base	Action - Attack		$4	+1 Card, +1 Action, Each player (including you) reveals the top card of his deck and either discards it or puts it back, your chouce.
 //16	*Thief			Base	Action - Attack		$4	Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 //17	*Throne Room	Base	Action				$4	Choose an Action card in your hand. Play it twice.
-//18	Council Room	Base	Action				$5	+4 Cards, +1 Buy, Each other player draws a card.
+//18	*Council Room	Base	Action				$5	+4 Cards, +1 Buy, Each other player draws a card.
 //19	Festival		Base	Action				$5	+2 Actions, +1 Buy, +2 Coins.
 //20	Laboratory		Base	Action				$5	+2 Cards, +1 Action.
 //21	Library			Base	Action				$5	Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.
