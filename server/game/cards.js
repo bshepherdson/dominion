@@ -574,9 +574,43 @@ dom.cards['Market'] = new dom.card('Market', { 'Action': 1 }, 5, '+1 Card, +1 Ac
 ]);
 
 
+dom.cards['Witch'] = new dom.card('Witch', { 'Action': 1, 'Attack': 1 }, 5, '+2 Cards. Each other player gains a Curse card.', [
+	rules.plusCards(2),
+	rules.everyOtherPlayer(true, function(active, p, c) {
+		p.buyCard(p.game_.indexInKingdom('Curse'), false); // NOT free, that will cost 0 and deplete the stack by 1.
+		c();
+	})
+]);
+
+dom.cards['Adventurer'] = new dom.card('Adventurer', { 'Action': 1 }, 6, 'Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.', [
+	function(p, c) {
+		console.log('Starting');
+		if(p.deck_.length == 0) {
+			p.shuffleDiscards_();
+		}
+
+		var toGo = 2;
+		while(toGo > 0 && p.deck_.length > 0) {
+			var card = p.deck_.pop();
+			console.log('Player ' + p.id_ + ' revealed ' + card.name);
+			if(card.types['Treasure']) {
+				toGo--;
+				p.hand_.push(card);
+			} else {
+				p.discards_.push(card);
+			}
+
+			if(p.deck_.length == 0) {
+				p.shuffleDiscards_();
+			}
+		}
+		
+		c();
+	}
+]);
+
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Mine'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -616,6 +650,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Library'],
 		dom.cards['Market'],
 		dom.cards['Mine'],
+		dom.cards['Witch'],
+		dom.cards['Adventurer'],
 	];
 };
 
@@ -652,8 +688,8 @@ dom.cards.treasureValues = {
 //21	*Library		Base	Action				$5	Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.
 //22	*Market			Base	Action				$5	+1 Card, +1 Action, +1 Buy, +1 Coin.
 //23	*Mine			Base	Action				$5	Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coins more; put it into your hand.
-//24	Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
-//25	Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
+//24	*Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
+//25	*Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
 
 exports.cards = dom.cards;
 exports.card = dom.card;

@@ -71,6 +71,15 @@ dom.game.prototype.nextPlayer = function() {
 };
 
 
+dom.game.prototype.indexInKingdom = function(name) {
+	for(var i = 0; i < this.kingdom.length; i++) {
+		if(this.kingdom[i].card.name == name) {
+			return i;
+		}
+	}
+};
+
+
 // MAIN
 
 
