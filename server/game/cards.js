@@ -492,6 +492,64 @@ dom.cards['Council Room'] = new dom.card('Council Room', { 'Action': 1 }, 5, '+4
 ]);
 
 
+dom.cards['Festival'] = new dom.card('Festival', { 'Action': 1 }, 5, '+2 Actions. +1 Buy. +2 Coin.', [
+	rules.plusActions(2),
+	rules.plusBuys(1),
+	rules.plusCoin(2)
+]);
+
+
+dom.cards['Laboratory'] = new dom.card('Laboratory', { 'Action': 1 }, 5, '+2 Cards. +1 Action.', [
+	rules.plusCards(2),
+	rules.plusActions(1)
+]);
+
+
+dom.cards['Library'] = new dom.card('Library', { 'Action': 1 }, 5, 'Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.', [
+	function(p,c) {
+		var repeat = function() {
+			if(p.hand_.length >= 7) {
+				c();
+				return;
+			}
+
+			if(p.deck_.length == 0) {
+				p.shuffleDiscards_();
+			}
+			if(p.deck_.length == 0) { // they've run out of cards, so stop trying to draw.
+				c();
+				return;
+			}
+
+			var card = p.deck_.pop();
+			if(card.types['Action']) {
+				var options = [
+					new dom.Option('take', 'Take into your hand'),
+					new dom.Option('discard', 'Discard')
+				];
+
+				var dec = new dom.Decision(p, options, 'You drew an Action, ' + card.name + '. You can either draw it into your hand or discard it.', []);
+				p.game_.decision(dec, function(key) {
+					if(key == 'take') {
+						p.hand_.push(card);
+					} else {
+						p.discards_.push(card);
+					}
+					repeat();
+				});
+			} else {
+				console.log('You drew ' + card.name + '.');
+				p.hand_.push(card);
+				repeat();
+			}
+		};
+		repeat();
+	}
+]);
+
+
+
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
@@ -528,6 +586,9 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Thief'],
 		dom.cards['Throne Room'],
 		dom.cards['Council Room'],
+		dom.cards['Festival'],
+		dom.cards['Laboratory'],
+		dom.cards['Library'],
 	];
 };
 
@@ -559,9 +620,9 @@ dom.cards.treasureValues = {
 //16	*Thief			Base	Action - Attack		$4	Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 //17	*Throne Room	Base	Action				$4	Choose an Action card in your hand. Play it twice.
 //18	*Council Room	Base	Action				$5	+4 Cards, +1 Buy, Each other player draws a card.
-//19	Festival		Base	Action				$5	+2 Actions, +1 Buy, +2 Coins.
-//20	Laboratory		Base	Action				$5	+2 Cards, +1 Action.
-//21	Library			Base	Action				$5	Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.
+//19	*Festival		Base	Action				$5	+2 Actions, +1 Buy, +2 Coins.
+//20	*Laboratory		Base	Action				$5	+2 Cards, +1 Action.
+//21	*Library		Base	Action				$5	Draw until you have 7 cards in hand. You may set aside any Action cards drawn this way, as you draw them; discard the set aside cards after you finish drawing.
 //22	Market			Base	Action				$5	+1 Card, +1 Action, +1 Buy, +1 Coin.
 //23	Mine			Base	Action				$5	Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coins more; put it into your hand.
 //24	Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
