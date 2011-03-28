@@ -626,19 +626,19 @@ dom.cards.starterDeck = function() {
 
 
 dom.cards.drawKingdom = function() {
-	return [
+	var all = [
 		dom.cards['Cellar'],
 		dom.cards['Chapel'],
+		dom.cards['Moat'],
 		dom.cards['Chancellor'],
 		dom.cards['Village'],
 		dom.cards['Woodcutter'],
-		dom.cards['Gardens'],
-		dom.cards['Moneylender'],
 		dom.cards['Workshop'],
 		dom.cards['Bureaucrat'],
 		dom.cards['Feast'],
-		dom.cards['Moat'],
+		dom.cards['Gardens'],
 		dom.cards['Militia'],
+		dom.cards['Moneylender'],
 		dom.cards['Remodel'],
 		dom.cards['Smithy'],
 		dom.cards['Spy'],
@@ -653,6 +653,17 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Witch'],
 		dom.cards['Adventurer'],
 	];
+
+	var drawn = [];
+	while(drawn.length < 10) {
+		var n = Math.floor(Math.random() * 25);
+		if(drawn.filter(function(c) { return c == n; }).length == 0) {
+			drawn.push(n);
+		}
+	}
+
+	drawn.sort(function(a,b){ return a-b; });
+	return drawn.map(function(n) { return all[n]; });
 };
 
 dom.cards.treasureValues = {
