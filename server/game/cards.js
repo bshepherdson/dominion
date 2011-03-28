@@ -155,8 +155,11 @@ rules.maybe = function(pred, when) {
 	};
 };
 
-
 rules.everyOtherPlayer = function(isAttack, f) {
+	rules.everyPlayer(false, isAttack, f);
+};
+
+rules.everyPlayer = function(includeMe, isAttack, f) {
 	return function(p, c) {
 		var responses = {};
 		var sent = 0;
@@ -171,8 +174,9 @@ rules.everyOtherPlayer = function(isAttack, f) {
 		};
 
 		for(var i = 0; i < p.game_.players.length; i++) {
-			if(p.id_ != p.game_.players[i].id_ && 
-			(!isAttack || !p.safeFromAttack())){
+			if((includeMe && p.id_ == p.game_.players[i].id_)
+			|| (p.id_ != p.game_.players[i].id_ && 
+			     (!isAttack || !p.safeFromAttack()))){
 				sent++;
 				f(p, p.game_.players[i], cont);
 			}
@@ -372,10 +376,38 @@ dom.cards['Remodel'] = new dom.card('Remodel', { 'Action': 1 }, 4, 'Trash a card
 	}
 ]);
 
+dom.cards['Smithy'] = new dom.card('Smithy', { 'Action': 1 }, 4, '+3 Cards.', [ rules.plusCards(3) ]);
+
+dom.cards['Spy'] = new dom.card('Spy', { 'Action': 1 }, 4, '+1 Card, +1 Action. Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice.', [
+	rules.plusCards(1),
+	rules.plusActions(1),
+	rules.everyPlayer(true, true, function(active, p, c) {
+		var options = [
+			new dom.Option('back', 'Put it back on the deck'),
+			new dom.Option('discard', 'Discard it')
+		];
+
+		if(p.deck_.length == 0) {
+			p.shuffleDiscards_();
+		}
+		var card = p.deck_.pop();
+		var isMe = active.id_ == p.id_;
+		var dec = new dom.Decision(active, options, (isMe ? 'You' : 'Player ' + p.id_) + ' had a ' + card.name + ' on top of ' + (isMe ? 'your' : 'his') + ' deck.', []);
+		p.game_.decision(dec, function(key) {
+			if(key == 'back') {
+				p.deck_.push(card);
+			} else {
+				p.discards_.push(card);
+			}
+			c();
+		});
+	})
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Remodel'],
+		dom.cards['Spy'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -430,8 +462,8 @@ dom.cards.treasureValues = {
 //10	*Gardens		Base	Victory				$4	Variable, Worth 1 Victory for every 10 cards in your deck (rounded down).
 //11	*Militia		Base	Action - Attack		$4	+2 Coins, Each other player discards down to 3 cards in his hand.
 //12	*Moneylender	Base	Action				$4	Trash a Copper from your hand. If you do, +3 Coins.
-//13	*Remodel			Base	Action				$4	Trash a card from your hand. Gain a card costing up to 2 Coins more than the trashed card.
-//14	Smithy			Base	Action				$4	+3 Cards.
+//13	*Remodel		Base	Action				$4	Trash a card from your hand. Gain a card costing up to 2 Coins more than the trashed card.
+//14	*Smithy			Base	Action				$4	+3 Cards.
 //15	Spy				Base	Action - Attack		$4	+1 Card, +1 Action, Each player (including you) reveals the top card of his deck and either discards it or puts it back, your chouce.
 //16	Thief			Base	Action - Attack		$4	Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 //17	Throne Room		Base	Action				$4	Choose an Action card in your hand. Play it twice.

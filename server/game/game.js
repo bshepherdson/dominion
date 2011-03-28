@@ -77,9 +77,10 @@ dom.game.prototype.nextPlayer = function() {
 var stdin = process.openStdin();
 stdin.setEncoding('utf8');
 
-var inputSuccess;
-var inputFailure;
-var inputPredicate;
+var inputSuccess = [];
+var inputFailure = [];
+var inputPredicate = [];
+var inputStrings = [];
 var inputDebug;
 stdin.on('data', function(chunk) {
 	if(chunk == 'debug\n') {
@@ -87,11 +88,20 @@ stdin.on('data', function(chunk) {
 		return;
 	}
 
-	if(!inputPredicate || !inputSuccess || !inputFailure) return;
-	if(inputPredicate(chunk)) {
-		inputSuccess(chunk);
+	if(inputPredicate.length == 0 || inputSuccess.length == 0 || inputFailure == 0) return;
+	if(inputPredicate[0](chunk)) {
+		inputSuccess[0](chunk);
+
+		inputPredicate.shift();
+		inputSuccess.shift();
+		inputFailure.shift();
 	} else {
-		inputFailure();
+		inputFailure[0]();
+
+	}
+
+	if(inputStrings.length > 0) {
+		process.stdout.write(inputStrings.shift());
 	}
 });
 
@@ -101,10 +111,14 @@ stdin.on('end', function() {
 
 
 function send(str, p, s, f) {
-	inputPredicate = p;
-	inputSuccess = s;
-	inputFailure = f;
-	process.stdout.write(str);
+	inputPredicate.push(p);
+	inputSuccess.push(s);
+	inputFailure.push(f);
+	if(inputSuccess.length == 1) {
+		process.stdout.write(str);
+	} else {
+		inputStrings.push(str);
+	}
 }
 
 
