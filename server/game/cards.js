@@ -156,7 +156,7 @@ rules.maybe = function(pred, when) {
 };
 
 rules.everyOtherPlayer = function(isAttack, f) {
-	rules.everyPlayer(false, isAttack, f);
+	return rules.everyPlayer(false, isAttack, f);
 };
 
 rules.everyPlayer = function(includeMe, isAttack, f) {
@@ -404,10 +404,54 @@ dom.cards['Spy'] = new dom.card('Spy', { 'Action': 1 }, 4, '+1 Card, +1 Action. 
 	})
 ]);
 
+dom.cards['Thief'] = new dom.card('Thief', { 'Action': 1, 'Attack': 1 }, 4, 'Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.', [
+	rules.everyOtherPlayer(true, function(active, p, c) {
+		if(p.deck_.length == 0){
+			p.shuffleDiscards_();
+		}
+		var cards = [];
+		cards.push(p.deck_.pop());
+		if(p.deck_.length == 0) {
+			p.shuffleDiscards_();
+		}
+		cards.push(p.deck_.pop());
+
+		console.log('Player ' + p.id_ + ' revealed ' + cards[0].name + ' and ' + cards[1].name);
+
+		var options = [];
+		if(cards[0].types['Treasure']) {
+			options.push(new dom.Option('trash0', 'Trash ' + cards[0].name));
+			options.push(new dom.Option('keep0', 'Take ' + cards[0].name));
+		}
+		if(cards[1].types['Treasure']) {
+			options.push(new dom.Option('trash1', 'Trash ' + cards[1].name));
+			options.push(new dom.Option('keep1', 'Take ' + cards[1].name));
+		}
+		
+		if(options.length > 0) {
+			var dec = new dom.Decision(active, options, 'Choose what to do with the Player ' + p.id_ + '\'s revealed Treasures.', []);
+			active.game_.decision(dec, function(key) {
+				if(key == 'trash0') {
+					p.discards_.push(cards[1]);
+				} else if(key == 'keep0') {
+					active.discards_.push(cards[0]);
+					p.discards_.push(cards[1]);
+				} else if(key == 'trash1') {
+					p.discards_.push(cards[0]);
+				} else if(key == 'keep1') {
+					active.discards_.push(cards[1]);
+					p.discards_.push(cards[0]);
+				}
+				c();
+			});
+		}
+	})
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Spy'],
+		dom.cards['Thief'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -436,7 +480,10 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Feast'],
 		dom.cards['Moat'],
 		dom.cards['Militia'],
-		dom.cards['Remodel']
+		dom.cards['Remodel'],
+		dom.cards['Smithy'],
+		dom.cards['Spy'],
+		dom.cards['Thief']
 	];
 };
 
@@ -464,8 +511,8 @@ dom.cards.treasureValues = {
 //12	*Moneylender	Base	Action				$4	Trash a Copper from your hand. If you do, +3 Coins.
 //13	*Remodel		Base	Action				$4	Trash a card from your hand. Gain a card costing up to 2 Coins more than the trashed card.
 //14	*Smithy			Base	Action				$4	+3 Cards.
-//15	Spy				Base	Action - Attack		$4	+1 Card, +1 Action, Each player (including you) reveals the top card of his deck and either discards it or puts it back, your chouce.
-//16	Thief			Base	Action - Attack		$4	Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
+//15	*Spy			Base	Action - Attack		$4	+1 Card, +1 Action, Each player (including you) reveals the top card of his deck and either discards it or puts it back, your chouce.
+//16	*Thief			Base	Action - Attack		$4	Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 //17	Throne Room		Base	Action				$4	Choose an Action card in your hand. Play it twice.
 //18	Council Room	Base	Action				$5	+4 Cards, +1 Buy, Each other player draws a card.
 //19	Festival		Base	Action				$5	+2 Actions, +1 Buy, +2 Coins.
