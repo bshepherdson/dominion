@@ -449,9 +449,42 @@ dom.cards['Thief'] = new dom.card('Thief', { 'Action': 1, 'Attack': 1 }, 4, 'Eac
 ]);
 
 
+dom.cards['Throne Room'] = new dom.card('Throne Room', { 'Action': 1 }, 4, 'Choose an Action card in your hand. Play it twice.', [
+	function(p, c) {
+		dom.utils.handDecision(p, 'Choose an Action card from your hand to be played twice.', 'Play nothing', function(card) { return card.types['Action']; },
+			function(index) {
+				var card = p.hand_[index];
+				p.removeFromHand(index);
+				p.inPlay_.push(card);
+
+				var rulesList;
+				if(typeof card.rules == 'object') { // array 
+					rulesList = card.rules;
+				} else {
+					rulesList = [ card.rules ]; // just a function
+				}
+
+				if(!rulesList) {
+					c();
+					return;
+				}
+
+				// gotta copy since we're going to consume them
+				for(var i = 0; i < rulesList.length; i++) {
+					p.rules_.push(rulesList[i]);
+				}
+				for(var i = 0; i < rulesList.length; i++) {
+					p.rules_.push(rulesList[i]);
+				}
+				c(); // returns to runRules
+			}, c);
+	}
+]);
+
+
+
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Thief'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -483,7 +516,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Remodel'],
 		dom.cards['Smithy'],
 		dom.cards['Spy'],
-		dom.cards['Thief']
+		dom.cards['Thief'],
+		dom.cards['Throne Room'],
 	];
 };
 
@@ -513,7 +547,7 @@ dom.cards.treasureValues = {
 //14	*Smithy			Base	Action				$4	+3 Cards.
 //15	*Spy			Base	Action - Attack		$4	+1 Card, +1 Action, Each player (including you) reveals the top card of his deck and either discards it or puts it back, your chouce.
 //16	*Thief			Base	Action - Attack		$4	Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
-//17	Throne Room		Base	Action				$4	Choose an Action card in your hand. Play it twice.
+//17	*Throne Room	Base	Action				$4	Choose an Action card in your hand. Play it twice.
 //18	Council Room	Base	Action				$5	+4 Cards, +1 Buy, Each other player draws a card.
 //19	Festival		Base	Action				$5	+2 Actions, +1 Buy, +2 Coins.
 //20	Laboratory		Base	Action				$5	+2 Cards, +1 Action.

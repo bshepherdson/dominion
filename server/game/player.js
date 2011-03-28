@@ -97,7 +97,11 @@ dom.player.prototype.removeFromHand = function(index) {
 };
 
 
-/** @param {number} index The index of the card in my hand. */
+/**
+ * NOTE: If you make changes here make sure to match them in the rules for Throne Room, if applicable.
+ *
+ * @param {number} index The index of the card in my hand.
+ */
 dom.player.prototype.playAction = function(index) {
 	if(index < 0 || index >= this.hand_.length) {
 		return;
