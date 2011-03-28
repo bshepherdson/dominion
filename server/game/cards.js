@@ -156,7 +156,7 @@ rules.maybe = function(pred, when) {
 };
 
 
-rules.everyOtherPlayer = function(f) {
+rules.everyOtherPlayer = function(isAttack, f) {
 	return function(p, c) {
 		var responses = {};
 		var sent = 0;
@@ -171,7 +171,8 @@ rules.everyOtherPlayer = function(f) {
 		};
 
 		for(var i = 0; i < p.game_.players.length; i++) {
-			if(p.id_ != p.game_.players[i].id_) {
+			if(p.id_ != p.game_.players[i].id_ && 
+			(!isAttack || p.game_.players[i].hand_.filter(function(card) { return card.name == 'Moat'; }).length == 0)) {
 				sent++;
 				f(p, p.game_.players[i], cont);
 			}
@@ -275,7 +276,7 @@ dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a car
 
 dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 }, 4, 'Gain a Silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).', [
 	rules.gainCard('Silver', function(p,card) { p.deck_.push(card); }),
-	rules.everyOtherPlayer(function(active, p, c) {
+	rules.everyOtherPlayer(true, function(active, p, c) {
 		var victoryCards = p.hand_.filter(function(card) { return card.types['Victory']; });
 		if(victoryCards.length == 0) {
 			console.log('Player ' + p.id_ + ' reveals a hand with no victory cards.');
@@ -327,10 +328,11 @@ dom.cards['Feast'] = new dom.card('Feast', { 'Action': 1 }, 4, 'Trash this card.
 			});
 	}]);
 
+dom.cards['Moat'] = new dom.card('Moat', { 'Action': 1, 'Reaction': 1 }, 2, '+2 Cards. When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that Attack.', []);
+
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Feast'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -356,7 +358,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Moneylender'],
 		dom.cards['Workshop'],
 		dom.cards['Bureaucrat'],
-		dom.cards['Feast']
+		dom.cards['Feast'],
+		dom.cards['Moat']
 	];
 };
 
