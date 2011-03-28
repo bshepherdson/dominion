@@ -307,9 +307,30 @@ dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 
 	})
 ]);
 
+dom.cards['Feast'] = new dom.card('Feast', { 'Action': 1 }, 4, 'Trash this card. Gain a card costing up to 5 Coin.', [
+	function(p,c) {
+		var card = p.inPlay_[p.inPlay_.length-1];
+		if(card.name == 'Feast') {
+			p.inPlay_.pop();
+		}
+		c();
+	},
+	function(p,c) {
+		dom.utils.gainCardDecision(p, 'Gain a card costing up to 5 Coin', 'Gain nothing', [], function(card) { return card.cost <= 5; },
+			function(repeat) {
+				return dom.utils.decisionHelper(
+					function() { c(); },
+					function(index) {
+						p.buyCard(index, true);
+						c();
+					}, repeat);
+			});
+	}]);
+
+
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Bureaucrat'],
+		dom.cards['Feast'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -334,7 +355,8 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Gardens'],
 		dom.cards['Moneylender'],
 		dom.cards['Workshop'],
-		dom.cards['Bureaucrat']
+		dom.cards['Bureaucrat'],
+		dom.cards['Feast']
 	];
 };
 
@@ -356,7 +378,7 @@ dom.cards.treasureValues = {
 //6		*Woodcutter		Base	Action				$3	+1 Buy, +2 Coins.
 //7		*Workshop		Base	Action				$3	Gain a card costing up to 4 Coins.
 //8		*Bureaucrat		Base	Action - Attack		$4	Gain a silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).
-//9		Feast			Base	Action				$4	Trash this card. Gain a card costing up to 5 Coins.
+//9		*Feast			Base	Action				$4	Trash this card. Gain a card costing up to 5 Coins.
 //10	*Gardens		Base	Victory				$4	Variable, Worth 1 Victory for every 10 cards in your deck (rounded down).
 //11	Militia			Base	Action - Attack		$4	+2 Coins, Each other player discards down to 3 cards in his hand.
 //12	*Moneylender	Base	Action				$4	Trash a Copper from your hand. If you do, +3 Coins.
