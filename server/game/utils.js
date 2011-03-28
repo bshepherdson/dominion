@@ -115,3 +115,7 @@ exports.handDecision = function(p, message, done, cardPred, matchFunc, cont) {
 	repeat();
 };
 
+exports.const = function(x) {
+	return function(y) { return x; };
+};
+

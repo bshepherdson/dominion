@@ -260,6 +260,10 @@ dom.player.prototype.shuffleDiscards_ = function() {
 	this.discards_ = [];
 };
 
+dom.player.prototype.safeFromAttack = function() {
+	return this.hand_.filter(function(c) { return c.name == 'Moat' }).length > 0;
+};
+
 
 exports.player = dom.player;
 
