@@ -70,8 +70,9 @@ exports.decisionHelper = function(done, match, failedMatch) {
 exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFunc) {
 	var options = [];
 	for(var i = 0; i < p.game_.kingdom.length; i++) {
-		var card = p.game_.kingdom[i].card;
-		if(cardPred(card)) {
+		var inKingdom = p.game_.kingdom[i];
+		var card = inKingdom.card;
+		if(inKingdom.count > 0 && cardPred(card)) {
 			options.push(new dom.Option('card['+i+']', '('+ card.cost +') ' + card.name));
 		}
 	}

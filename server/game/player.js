@@ -264,6 +264,33 @@ dom.player.prototype.shuffleDiscards_ = function() {
 	this.discards_ = [];
 };
 
+dom.player.prototype.calculateScore = function() {
+	var score = 0;
+	var gardens = 0;
+	var cards = 0;
+
+	var scoreArray = function(arr) {
+		for(var i = 0; i < arr.length; i++) {
+			var card = arr[i];
+			cards++;
+			if(card.name == 'Gardens') {
+				gardens++;
+			} else if(card.types['Victory']) {
+				score += dom.cards.victoryValues[card.name];
+			}
+		}
+	};
+
+	scoreArray(this.hand_);
+	scoreArray(this.deck_);
+	scoreArray(this.discards_);
+
+	score += gardens * Math.floor(cards/10);
+
+	return score;
+};
+
+
 dom.player.prototype.safeFromAttack = function() {
 	return this.hand_.filter(function(c) { return c.name == 'Moat' }).length > 0;
 };

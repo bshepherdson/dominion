@@ -47,7 +47,7 @@ dom.game.prototype.decision = function(dec, cb) {
 dom.game.prototype.startGame = function() {
 	var cards = dom.cards.drawKingdom();
 	for(var i = 0; i < cards.length; i++) {
-		this.kingdom.push({ card: cards[i], count: 10 }); //TODO: Should be variable depending on number of players, etc.
+		this.kingdom.push({ card: cards[i], count: 1 }); //TODO: Should be variable depending on number of players, etc.
 	}
 
 	this.kingdom.push({ card: dom.cards['Copper'], count: 1000 });
@@ -68,6 +68,59 @@ dom.game.prototype.nextPlayer = function() {
 		this.turn_ = 0;
 	}
 	this.players[this.turn_].turnStart();
+
+	this.checkEndOfGame();
+};
+
+
+dom.game.prototype.checkEndOfGame = function() {
+	var ixProvince = this.indexInKingdom('Province');
+
+	var emptyPiles = 0;
+	for(var i = 0; i < this.kingdom.length; i++) {
+		if(this.kingdom[i].count <= 0) {
+			emptyPiles++;
+		}
+	}
+
+	if(this.kingdom[ixProvince].count <= 0 || emptyPiles >= 3) {
+		this.endGame();
+	}
+};
+
+
+dom.game.prototype.endGame = function() {
+	// count victory points for each player
+	var maxScore = -10000;
+	var maxIndexes = [];
+	for(var i = 0; i < this.players.length; i++) {
+		var score = this.players[i].calculateScore();
+		console.log('Player ' + this.players[i].id_ + ' scored ' + score);
+		if(score == maxScore) {
+			maxIndexes.push(i);
+		} else if(score > maxScore) {
+			maxScore = score;
+			maxIndexes = [i];
+		}
+	}
+
+	console.log('\n\nGame over.');
+	var str = 'Player';
+	if(maxIndexes.length > 1) {
+		str += 's ';
+		for(var i = 0; i < maxIndexes.length; i++) {
+			str += this.players[maxIndexes[i]].id_;
+			if(i+1 < maxIndexes.length) {
+				str += ', ';
+			}
+		}
+		str += ' tied for the win.';
+	} else {
+		str += ' ' + this.players[maxIndexes[0]].id_ + ' wins.'
+	}
+
+	console.log(str);
+	process.exit(0);
 };
 
 
@@ -124,9 +177,9 @@ function send(str, p, s, f) {
 	inputSuccess.push(s);
 	inputFailure.push(f);
 	if(inputSuccess.length == 1) {
-		process.stdout.write(str);
+		process.stdout.write('\n\n' + str);
 	} else {
-		inputStrings.push(str);
+		inputStrings.push('\n\n' + str);
 	}
 }
 

@@ -672,6 +672,12 @@ dom.cards.treasureValues = {
 	'Copper': 1
 };
 
+dom.cards.victoryValues = {
+	'Estate': 1,
+	'Duchy': 3,
+	'Province': 6
+};
+
 
 // the kingdom cards
 
