@@ -46,19 +46,53 @@ server.listen(8080);
 var io = io.listen(server)
   , buffer = [];
   
+
+var clients = {};
+
+
 io.on('connection', function(client){
   client.send({ buffer: buffer });
   client.broadcast({ announcement: client.sessionId + ' connected' });
+  clients[client.sessionId] = client;
   
   client.on('message', function(message){
-    var msg = { message: [client.sessionId, message] };
-    buffer.push(msg);
-    if (buffer.length > 15) buffer.shift();
-    client.broadcast(msg);
+	if(message[0] == '/') {
+		var match = /^\/(\S+?)\b/.exec(message);
+		command(client, match[1], message);
+	} else {
+		var msg = { message: [client.sessionId, message] };
+		buffer.push(msg);
+		if (buffer.length > 15) buffer.shift();
+		client.broadcast(msg);
+	}
   });
 
   client.on('disconnect', function(){
     client.broadcast({ announcement: client.sessionId + ' disconnected' });
   });
 });
+
+
+function command(c, cmd, msg) {
+	if(cmd == 'whisper') {
+		var split = firstRestSplit(msg);
+		var target = clients[split.first];
+		if(target) {
+			target.send({ whisper: [ c.sessionId, split.rest ] });
+		} else {
+			c.send({ message: [ 'System', 'No such user ' + split.first]});
+		}
+	}
+
+	else {
+		c.send({ message: [ 'System', 'No such command \'' + cmd + '\'' ]});
+	}
+}
+
+function firstRestSplit(s) {
+	var match = /^\/.*?\s+(\S+)\s+(.*)$/.exec(s);
+	return { first: match[1], rest: match[2] };
+}
+
+
 
