@@ -46,8 +46,10 @@ dom.game.prototype.decision = function(dec, cb) {
 
 dom.game.prototype.startGame = function() {
 	var cards = dom.cards.drawKingdom();
+	console.log('Kingdom:');
 	for(var i = 0; i < cards.length; i++) {
-		this.kingdom.push({ card: cards[i], count: 1 }); //TODO: Should be variable depending on number of players, etc.
+		this.kingdom.push({ card: cards[i], count: 10 }); //TODO: Should be variable depending on number of players, etc.
+		console.log(cards[i].name + ', ' + cards[i].cost + ': ' + cards[i].text);
 	}
 
 	this.kingdom.push({ card: dom.cards['Copper'], count: 1000 });
@@ -120,7 +122,7 @@ dom.game.prototype.endGame = function() {
 	}
 
 	console.log(str);
-	process.exit(0);
+	setTimeout(process.exit, 1000);
 };
 
 
@@ -158,8 +160,10 @@ stdin.on('data', function(chunk) {
 		inputSuccess.shift();
 		inputFailure.shift();
 	} else {
-		inputFailure[0]();
-
+		inputPredicate.shift();
+		inputSuccess.shift();
+		var f = inputFailure.shift();
+		f();
 	}
 
 	if(inputStrings.length > 0) {
