@@ -277,6 +277,8 @@ dom.player.prototype.calculateScore = function() {
 				gardens++;
 			} else if(card.types['Victory']) {
 				score += dom.cards.victoryValues[card.name];
+			} else if(card.types['Curse']) {
+				score--;
 			}
 		}
 	};
