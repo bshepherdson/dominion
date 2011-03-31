@@ -8,9 +8,9 @@ dom.Decision = require('./decision').Decision;
 dom.Option = require('./decision').Option;
 
 // static variables
-var playerCount = 0;
+var playerCount = 1;
 
-dom.player = function(game) {
+dom.player = function(game, client) {
 	this.id_ = playerCount++;
 	this.discards_ = dom.cards.starterDeck(); // start them in the discards
 	this.deck_ = [];                          // and an empty deck
@@ -21,6 +21,9 @@ dom.player = function(game) {
 	this.draw(5);                             // and draw
 
 	this.game_ = game;
+	this.client = client;
+	this.decisions = []; // queue of decisions to be sent
+	this.handlers = [];  // parallel queue of response handlers
 
 	// turn data
 	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;

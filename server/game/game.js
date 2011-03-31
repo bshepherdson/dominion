@@ -7,21 +7,30 @@ dom.cards = require('./cards').cards;
 dom.card = require('./cards').card;
 dom.utils = require('./utils');
 
-dom.game = function(app) {
-	this.app_ = app;
+dom.game = function() {
 	this.players = [];
 	this.turn_ = -1; // gets bumped by nextPlayer before starting.
 	this.kingdom = [];
 };
 
 
-dom.game.prototype.addPlayer = function() {
-	var p = new dom.player(this);
+dom.game.prototype.addPlayer = function(client) {
+	var p = new dom.player(this, client);
 	this.players.push(p);
 };
 
 
 dom.game.prototype.decision = function(dec, cb) {
+	var payload = {
+		decision: {
+			info: dec.info,
+			message: dec.message,
+			options: dec.options
+		}
+	};
+
+	dec.player.handlers.push(function(req
+
 	var str = 'Player ' + dec.player.id_ + ':\n';
 	for(var i = 0; i < dec.info.length; i++) {
 		str += dec.info[i] + "\n";

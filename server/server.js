@@ -7,6 +7,8 @@ var http = require('http')
   , fs = require('fs')
   , io = require('socket.io')
   , sys = require(process.binding('natives').util ? 'util' : 'sys')
+  , dom = {}
+  , dom.game = require('./game/game').game
   , server;
     
 server = http.createServer(function(req, res){
@@ -49,8 +51,10 @@ var io = io.listen(server)
 
 var clients = {};
 
+var thegame = new dom.game();
 
 io.on('connection', function(client){
+  thegame.addPlayer(client);
   client.send({ buffer: buffer });
   client.broadcast({ announcement: client.sessionId + ' connected' });
   clients[client.sessionId] = client;
@@ -70,6 +74,11 @@ io.on('connection', function(client){
   client.on('disconnect', function(){
     client.broadcast({ announcement: client.sessionId + ' disconnected' });
   });
+
+  // DEBUG
+  if(thegame.players.length == 2) {
+	  thegame.startGame();
+  }
 });
 
 
