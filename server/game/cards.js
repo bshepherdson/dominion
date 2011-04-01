@@ -678,6 +678,14 @@ dom.cards.victoryValues = {
 	'Province': 6
 };
 
+// converts cards to wire format (by removing the rules, basically)
+dom.cards.wireCards = function(cards) {
+	var ret = [];
+	for(var i = 0; i < cards.length; i++) {
+		ret.push({ name: cards[i].card.name, types: cards[i].card.types, cost: cards[i].card.cost, text: cards[i].card.text, count: cards[i].count });
+	}
+	return ret;
+}
 
 // the kingdom cards
 

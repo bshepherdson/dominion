@@ -4,29 +4,93 @@
     <title>socket.io client test</title>
         
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
-    <script src="/json.js"></script> <!-- for ie -->
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
     
     <script>
-      function message(obj){
+
+	  function putMessage(str, className) {
         var el = document.createElement('p');
-        if ('announcement' in obj) el.innerHTML = '<em>' + esc(obj.announcement) + '</em>';
-        else if ('message' in obj) el.innerHTML = '<b>' + esc(obj.message[0]) + ':</b> ' + esc(obj.message[1]);
-        else if ('whisper' in obj) {
-			el.innerHTML = '<b>' + esc(obj.whisper[0]) + ':</b> ' + esc(obj.whisper[1]);
-			$(el).addClass('whisper');
+		el.innerHTML = str;
+		$("#chat").append(el);
+		$("#chat").scrollTop(10000000);
+		if(className) $(el).addClass(className);
+		return el;
+	  }
+
+      function message(obj){
+		console.log(obj);
+        if ('announcement' in obj) putMessage('<em>' + esc(obj.announcement) + '</em>');
+        else if ('message' in obj) putMessage('<b>' + esc(obj.message[0]) + ':</b> ' + esc(obj.message[1]));
+        else if ('whisper' in obj) putMessage('<b>' + esc(obj.whisper[0]) + ':</b> ' + esc(obj.whisper[1]), 'whisper');
+		else if ('decision' in obj) {
+			decision(obj.decision);
+		} else if ('accept' in obj) {
+			$("#decision").html('<p>Decision accepted.</p>');
+		} else if ('retry' in obj) {
+			$('.clicked').removeClass('clicked');
+			$("#decision").append('<p class="retry">Decision rejected. Try again.</p>');
+		} else if ('kingdom' in obj) {
+			kingdom(obj);
+		} else {
+			console.log('unknown message type');
+			console.log(obj);
 		}
-        
-        if( obj.message && window.console && console.log ) console.log(obj.message[0], obj.message[1]);
-        document.getElementById('chat').appendChild(el);
-        document.getElementById('chat').scrollTop = 1000000;
       }
+
+	  function decision(dec) {
+		  var str = '<p>' + dec.message + '</p>';
+		  str += '<ul class="info">';
+		  for(var i = 0; i < dec.info.length; i++) {
+			  str += '<li class="info">' + dec.info[i] + '</li>';
+		  }
+		  str += '</ul>';
+
+		  str += '<ul class="decision">';
+		  for(var i = 0; i < dec.options.length; i++) {
+			  str += '<li class="choice" id="choice'+i+'" onclick="choice(' + i + ', \'' + dec.options[i].key + '\')">' + dec.options[i].text + '</li>';
+		  }
+		  str += '</ul>';
+
+		  $("#decision").html(str);
+	  }
+
+	  function choice(index, key) {
+		  $("#choice" + index).addClass('clicked'); // lock it to green
+		  console.log('choice: ' + key);
+		  socket.send({ decision: key });
+	  }
+
+	  function kingdom(obj) {
+		  console.log(obj);
+		  var str = '<table class="kingdom"><tr><th>Name</th><th>Cost</th><th>Left</th><th>Text</th></tr>';
+		  for(var i = 0; i < obj.kingdom.length; i++) {
+			  var c = obj.kingdom[i];
+			  str += '<tr class="';
+			  if(c.types['Attack']) {
+				  str += 'attack';
+			  } else if(c.types['Reaction']) {
+				  str += 'reaction';
+			  } else if(c.types['Treasure']) {
+				  str += 'treasure';
+			  } else if(c.types['Victory']) {
+				  str += 'victory';
+			  } else if(c.types['Curse']) {
+				  str += 'curse';
+			  } else if(c.types['Action']) {
+				  str += 'action';
+			  }
+			  str += '"><td class="name">' + c.name + '</td><td class="cost">' + c.cost + '</td><td>' + c.count + '</td><td>' + c.text + '</td></tr>';
+		  }
+		  str += '</table>';
+
+		  $("#kingdomcontent").html(str);
+	  }
       
       function send(){
         var val = document.getElementById('text').value;
-        socket.send(val);
+        socket.send({ chat: val });
         message({ message: ['you', val] });
         document.getElementById('text').value = '';
       }
@@ -54,6 +118,11 @@
     </script>
     
     <h1>Sample chat client</h1>
+	<div id="kingdom">
+		<h3>Kingdom [<span id="plusminus">+</span>]</h3>
+		<div id="kingdomcontent"></div>
+	</div>
+	<div id="decision"></div>
     <div id="chat"><p>Connecting...</p></div>
     <form id="form" onSubmit="send(); return false">
       <input type="text" autocomplete="off" id="text"><input type="submit" value="Send">
@@ -69,6 +138,77 @@
       #form input[type=submit] { cursor: pointer; background: #999; border: none; padding: 6px 8px; -moz-border-radius: 8px; -webkit-border-radius: 8px; margin-left: 5px; text-shadow: 0 1px 0 #fff; }
       #form input[type=submit]:hover { background: #A2A2A2; }
       #form input[type=submit]:active { position: relative; top: 2px; }
+
+	  ul.info {
+		  background-color: #ccc;
+		  font-size: 75%;
+		  list-style-type: none;
+		  margin-left: 10px;
+		  padding: 0;
+		  padding-left: 5px;
+		  min-width: 100px;
+	  }
+
+	  ul.decision {
+		  min-width: 400px;
+		  list-style-type: none;
+		  margin-left: 10px;
+		  padding: 0;
+	  }
+
+	  li.choice {
+		  padding-left: 10px;
+		  margin-bottom: 5px;
+		  min-height: 25px;
+		  width: 100%;
+		  background-color: #bbbbff;
+	  }
+
+	  li.choice:hover {
+		  background-color: #8888ff;
+	  }
+
+	  li.clicked {
+		  background-color: #88ff88;
+	  }
+	  
+	  li.clicked:hover {
+		  background-color: #44ff44;
+	  }
+
+	  p.error {
+		  background-color: #ffcccc;
+		  color: red;
+		  width: 400px;
+		  padding: 5px 10px;
+	  }
+
+	  div.kingdom {
+	  }
+
+	  table.kingdom {
+		  border: 0px;
+	  }
+	  
+	  table.kingdom td {
+		  padding: 2px 5px;
+	  }
+
+	  table.kingdom th {
+		  text-align: left;
+	  }
+
+	  table.kingdom tr.reaction { background-color: #bbbbff; }
+	  table.kingdom tr.treasure { background-color: #ffff88; }
+	  table.kingdom tr.victory  { background-color: #aaffaa; }
+	  table.kingdom tr.curse    { background-color: #ffaaff; }
+	  table.kingdom tr.attack   { background-color: #ffaaaa; }
+	  table.kingdom tr.action   { background-color: #eeeeee; }
+
+	  table.kingdom td.name {
+		  font-style: bold;
+	  }
+
     </style>
     
   </body>

@@ -17,6 +17,7 @@ dom.game = function() {
 dom.game.prototype.addPlayer = function(client) {
 	var p = new dom.player(this, client);
 	this.players.push(p);
+	return p;
 };
 
 
@@ -29,27 +30,16 @@ dom.game.prototype.decision = function(dec, cb) {
 		}
 	};
 
-	dec.player.handlers.push(function(req
+	dec.player.handlers.push(function(p, key) {
+		if(!key) {
+			return false; // cause a retry
+		}
+		cb(key);
+		return true;
+	});
 
-	var str = 'Player ' + dec.player.id_ + ':\n';
-	for(var i = 0; i < dec.info.length; i++) {
-		str += dec.info[i] + "\n";
-	}
-	str += '\n';
-	str += dec.message + '\n';
-	for(var i = 0; i < dec.options.length; i++) {
-		str += (i+1) + ') ' + dec.options[i].text + '\n';
-	}
-	str += 'Choice: ';
-
-	send(str, function(res) {
-		res = +res; // coerce to number
-		return res && res > 0 && res <= dec.options.length;
-	}, function(res) {
-		res--;
-		cb(dec.options[res].key);
-	}, dom.utils.bind(this.decision, this, dec, cb));
-
+	console.log('sending decision to player');
+	dec.player.client.send(payload);
 };
 
 
@@ -68,6 +58,10 @@ dom.game.prototype.startGame = function() {
 	this.kingdom.push({ card: dom.cards['Dutchy'], count: 12 });
 	this.kingdom.push({ card: dom.cards['Province'], count: 12 });
 	this.kingdom.push({ card: dom.cards['Curse'], count: 30 });
+
+	for(var i = 0; i < this.players.length; i++) {
+		this.players[i].client.send({ kingdom: dom.cards.wireCards(this.kingdom) });
+	}
 
 	this.nextPlayer();
 };
@@ -196,38 +190,6 @@ function send(str, p, s, f) {
 	}
 }
 
-
-
-// MAIN
-
-/*
-var test = dom.utils.bind(function(x,y,z) {
-	console.log(x);
-	console.log(y);
-	console.log(z);
-}, this, 4);
-
-test(3, 2);
-test(7, 1);
-
-process.exit();
-*/
-
-
-
-var thegame = new dom.game(null);
-thegame.addPlayer();
-thegame.addPlayer();
-
-thegame.startGame();
-
-inputDebug = function() {
-	console.log(thegame);
-	for(var i=0; i < thegame.players.length; i++) {
-		console.log('=======================================');
-		console.log(thegame.players[i]);
-	}
-};
 
 exports.game = dom.game;
 

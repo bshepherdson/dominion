@@ -76,7 +76,7 @@ dom.player.prototype.turnActionPhase = function() {
 			return;
 		}
 
-		var match = /\[(\d+)\]/.exec(key);
+		var match = /^card\[(\d+)\]/.exec(key);
 		if(match) {
 			var index = match[1]; // [1] is the first capture group
 			this.playAction(index);
@@ -166,6 +166,8 @@ dom.player.prototype.turnBuyPhase = function() {
 		}
 	}
 
+	console.log('buy phase. coin = ' + this.coin);
+
 	var p = this;
 	dom.utils.gainCardDecision(this, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
 		'Buys: ' + this.buys,
@@ -175,6 +177,7 @@ dom.player.prototype.turnBuyPhase = function() {
 		return dom.utils.decisionHelper(
 			function() { p.turnCleanupPhase(); },
 			function(index) {
+				console.log('buying card: ' + index);
 				p.buyCard(index, false);
 				p.turnBuyPhase();
 			},

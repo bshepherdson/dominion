@@ -7,9 +7,11 @@ var http = require('http')
   , fs = require('fs')
   , io = require('socket.io')
   , sys = require(process.binding('natives').util ? 'util' : 'sys')
-  , dom = {}
-  , dom.game = require('./game/game').game
   , server;
+
+var dom = {};
+dom.game = require('./game/game').game
+
     
 server = http.createServer(function(req, res){
   // your normal server code
@@ -45,29 +47,32 @@ server.listen(8080);
 
 // socket.io, I choose you
 // simplest chat application evar
-var io = io.listen(server)
-  , buffer = [];
+var io = io.listen(server);
   
-
-var clients = {};
-
 var thegame = new dom.game();
 
 io.on('connection', function(client){
-  thegame.addPlayer(client);
-  client.send({ buffer: buffer });
+  var player = thegame.addPlayer(client);
   client.broadcast({ announcement: client.sessionId + ' connected' });
-  clients[client.sessionId] = client;
   
   client.on('message', function(message){
-	if(message[0] == '/') {
-		var match = /^\/(\S+?)\b/.exec(message);
-		command(client, match[1], message);
-	} else {
-		var msg = { message: [client.sessionId, message] };
-		buffer.push(msg);
-		if (buffer.length > 15) buffer.shift();
-		client.broadcast(msg);
+	if('chat' in message) {
+		if(message.chat[0] == '/') {
+			var match = /^\/(\S+?)\b/.exec(message.chat);
+			command(client, match[1], message.chat);
+		} else {
+			var msg = { message: [client.sessionId, message] };
+			client.broadcast(msg);
+		}
+	} else if('decision' in message) {
+		if(player.handlers.length > 0) {
+			var h = player.handlers[0];
+			if(h(player, message.decision)) {
+				player.handlers.shift();
+			} else {
+				client.send({ retry: 1 });
+			}
+		}
 	}
   });
 

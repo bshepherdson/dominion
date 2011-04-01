@@ -83,6 +83,7 @@ exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFu
 		p.game_.decision(dec, decisionFunc(repeat));
 	};
 
+	console.log('calling repeat()');
 	repeat();
 };
 
