@@ -68,6 +68,10 @@ dom.game.prototype.startGame = function() {
 
 
 dom.game.prototype.nextPlayer = function() {
+	if(this.turn_ >= 0) { // not first turn
+		this.players[this.turn_].client.send({ turn_over: 1 });
+	}
+
 	this.turn_++;
 	if(this.turn_ >= this.players.length) {
 		this.turn_ = 0;
@@ -95,38 +99,54 @@ dom.game.prototype.checkEndOfGame = function() {
 
 
 dom.game.prototype.endGame = function() {
-	// count victory points for each player
-	var maxScore = -10000;
-	var maxIndexes = [];
+	var scores = [];
 	for(var i = 0; i < this.players.length; i++) {
-		var score = this.players[i].calculateScore();
-		console.log('Player ' + this.players[i].id_ + ' scored ' + score);
-		if(score == maxScore) {
-			maxIndexes.push(i);
-		} else if(score > maxScore) {
-			maxScore = score;
-			maxIndexes = [i];
-		}
+		scores.push({ id: this.players[i].id_, score: this.players[i].calculateScore() });
 	}
 
-	console.log('\n\nGame over.');
-	var str = 'Player';
-	if(maxIndexes.length > 1) {
-		str += 's ';
-		for(var i = 0; i < maxIndexes.length; i++) {
-			str += this.players[maxIndexes[i]].id_;
-			if(i+1 < maxIndexes.length) {
-				str += ', ';
-			}
-		}
-		str += ' tied for the win.';
-	} else {
-		str += ' ' + this.players[maxIndexes[0]].id_ + ' wins.'
+	scores.sort(function(a,b) { return b.score - a.score });
+
+	var msg = { game_over: scores };
+
+	for(var i = 0; i < this.players.length; i++) {
+		this.players[i].client.send(msg);
 	}
 
-	console.log(str);
-	setTimeout(process.exit, 1000);
 };
+
+
+	//// count victory points for each player
+	//var maxScore = -10000;
+	//var maxIndexes = [];
+	//for(var i = 0; i < this.players.length; i++) {
+	//	var score = this.players[i].calculateScore();
+	//	console.log('Player ' + this.players[i].id_ + ' scored ' + score);
+	//	if(score == maxScore) {
+	//		maxIndexes.push(i);
+	//	} else if(score > maxScore) {
+	//		maxScore = score;
+	//		maxIndexes = [i];
+	//	}
+	//}
+
+	//console.log('\n\nGame over.');
+	//var str = 'Player';
+	//if(maxIndexes.length > 1) {
+	//	str += 's ';
+	//	for(var i = 0; i < maxIndexes.length; i++) {
+	//		str += this.players[maxIndexes[i]].id_;
+	//		if(i+1 < maxIndexes.length) {
+	//			str += ', ';
+	//		}
+	//	}
+	//	str += ' tied for the win.';
+	//} else if({
+	//	str += ' ' + this.players[maxIndexes[0]].id_ + ' wins.'
+	//}
+
+	//console.log(str);
+	//setTimeout(process.exit, 1000);
+//};
 
 
 dom.game.prototype.indexInKingdom = function(name) {

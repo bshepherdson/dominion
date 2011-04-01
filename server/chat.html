@@ -31,6 +31,14 @@
 		} else if ('retry' in obj) {
 			$('.clicked').removeClass('clicked');
 			$("#decision").append('<p class="retry">Decision rejected. Try again.</p>');
+		} else if ('turn_over' in obj) {
+			$("#decision").html('<p>Your turn is over.</p>');
+		} else if ('game_over' in obj) {
+			var str = ''
+			for(var i = 0; i < obj.game_over.length; i++) {
+				str += '<p>Player ' + obj.game_over[i].id + ': ' + obj.game_over[i].score + ' points</p>';
+			}
+			$("#decision").html(str);
 		} else if ('kingdom' in obj) {
 			kingdom(obj);
 		} else {
@@ -118,11 +126,11 @@
     </script>
     
     <h1>Sample chat client</h1>
+	<div id="decision"></div>
 	<div id="kingdom">
 		<h3>Kingdom [<span id="plusminus">+</span>]</h3>
 		<div id="kingdomcontent"></div>
 	</div>
-	<div id="decision"></div>
     <div id="chat"><p>Connecting...</p></div>
     <form id="form" onSubmit="send(); return false">
       <input type="text" autocomplete="off" id="text"><input type="submit" value="Send">
@@ -158,8 +166,9 @@
 
 	  li.choice {
 		  padding-left: 10px;
-		  margin-bottom: 5px;
-		  min-height: 25px;
+		  padding-right: 10px;
+		  margin-bottom: 10px;
+		  line-height: 30px;
 		  width: 100%;
 		  background-color: #bbbbff;
 	  }
