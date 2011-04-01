@@ -59,18 +59,20 @@ dom.game.prototype.startGame = function() {
 	this.kingdom.push({ card: dom.cards['Province'], count: 12 });
 	this.kingdom.push({ card: dom.cards['Curse'], count: 30 });
 
-	for(var i = 0; i < this.players.length; i++) {
-		this.players[i].client.send({ kingdom: dom.cards.wireCards(this.kingdom) });
-	}
-
 	this.nextPlayer();
 };
 
+dom.game.prototype.sendToAll = function(msg) {
+	for(var i = 0; i < this.players.length; i++) {
+		this.players[i].client.send(msg);
+	}
+};
 
 dom.game.prototype.nextPlayer = function() {
 	if(this.turn_ >= 0) { // not first turn
 		this.players[this.turn_].client.send({ turn_over: 1 });
 	}
+	this.sendToAll({ kingdom: dom.cards.wireCards(this.kingdom) });
 
 	this.turn_++;
 	if(this.turn_ >= this.players.length) {
