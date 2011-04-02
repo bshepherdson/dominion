@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>socket.io client test</title>
+    <title>Dominion</title>
         
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -94,6 +94,13 @@
 		  str += '</table>';
 
 		  $("#kingdomcontent").html(str);
+
+		  str = '';
+		  for(var i = 0; i < obj.stacks.length; i++) {
+			  var p = obj.stacks[i];
+			  str += '<p class="stacks"><strong>Player ' + p.id + ':</strong> Hand: ' + p.hand + ', Deck: ' + p.deck + ', Discards: ' + p.discards + '</p>';
+		  }
+		  $("#stacks").html(str);
 	  }
       
       function send(){
@@ -125,11 +132,15 @@
       socket.on('reconnect_failed', function(){ message({ message: ['System', 'Reconnected to server FAILED.']})});
     </script>
     
-    <h1>Sample chat client</h1>
+    <h1>Dominion</h1>
 	<div id="decision"></div>
 	<div id="kingdom">
-		<h3>Kingdom [<span id="plusminus">+</span>]</h3>
+		<h3>Kingdom</h3>
 		<div id="kingdomcontent"></div>
+	</div>
+	<div>
+		<h3>Stacks</h3>
+		<div id="stacks"></div>
 	</div>
     <div id="chat"><p>Connecting...</p></div>
     <form id="form" onSubmit="send(); return false">

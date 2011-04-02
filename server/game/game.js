@@ -68,11 +68,20 @@ dom.game.prototype.sendToAll = function(msg) {
 	}
 };
 
+dom.game.prototype.stackSizes = function() {
+	var ret = [];
+	for(var i = 0; i < this.players.length; i++){
+		var p = this.players[i];
+		ret.push({ id: p.id_, deck: p.deck_.length, hand: p.hand_.length, discards: p.discards_.length });
+	}
+	return ret;
+}
+
 dom.game.prototype.nextPlayer = function() {
 	if(this.turn_ >= 0) { // not first turn
 		this.players[this.turn_].client.send({ turn_over: 1 });
 	}
-	this.sendToAll({ kingdom: dom.cards.wireCards(this.kingdom) });
+	this.sendToAll({ kingdom: dom.cards.wireCards(this.kingdom), stacks: this.stackSizes() });
 
 	this.turn_++;
 	if(this.turn_ >= this.players.length) {
