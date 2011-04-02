@@ -7,32 +7,60 @@ var http = require('http')
   , fs = require('fs')
   , io = require('socket.io')
   , sys = require(process.binding('natives').util ? 'util' : 'sys')
+  , sqlite3 = require('sqlite3')
   , server;
 
-var dom = {};
-dom.game = require('./game/game').game
+require('joose');
+require('joosex-namespace-depended');
+var Cookies = require('cookies');
+var hash = require('hash');
 
-    
+
+var dom = {};
+dom.game = require('./game/game').game;
+
+var db = new sqlite3.Database('storage.db3');
+
 server = http.createServer(function(req, res){
+  var cookies = new Cookies(req, res);
   // your normal server code
   var path = url.parse(req.url).pathname;
   switch (path){
     case '/':
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write('<h1>Welcome. Try the <a href="/chat.html">chat</a> example.</h1>');
-      res.end();
+	  if(checkAuth(req, cookies)) {
+		  sendFile(res, '/dominion.html');
+	  } else {
+		  sendFile(res, '/login.html');
+	  }
       break;
       
     case '/json.js':
     case '/chat.html':
-      fs.readFile(__dirname + path, function(err, data){
-        if (err) return send404(res);
-        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
-        res.write(data, 'utf8');
-        res.end();
-      });
+	  sendFile(res, path);
       break;
       
+	case '/login':
+  	    // process: get params, check they exist. check DB. reject page or accept. on accept, generate opaque uid cookie via salt+SHA1, set cookie, redirect to /dominion.html
+  	    var query = url.parse(req.url, true).query;
+  	    if(!query || !query.email || !query.dompwd) { // improper request
+  	        sendRedirect(res, '/login.html');
+  	        break;
+  	    }
+  
+  	    var hashedpwd = Hash.sha256(query.dompwd);
+  	    var sql = db.get('SELECT * FROM User WHERE email = ? AND password = ? LIMIT 1', { 1: query.email, 2: hashedpwd }, function(err, row) {
+  		    if(err || !res) { // query failed
+  		        sendRedirect(res, '/login.html');
+  		        return;
+  		    }
+
+            cookies.set('email', query.email);
+            cookies.set('uid', buildUid(query.email, req));
+
+            sendRedirect(res, '/');
+        });
+        break;
+
     default: send404(res);
   }
 }),
@@ -41,6 +69,26 @@ send404 = function(res){
   res.writeHead(404);
   res.write('404');
   res.end();
+};
+
+sendRedirect = function(res, to) {
+	res.writeHead('303', 'Login redirect', { 'Location': to, 'Content-type': 'text/html' });
+	res.write('<html><body>Redirecting to <a href="' + to + '">here</a>...</body></html>');
+	res.end();
+};
+
+buildUid = function(email, req) {
+    return Hash.sha256(email + 'a salt value' + req.connection.remoteAddress + ' Dominion v0.1 by Braden Shepherdson');
+};
+
+checkAuth = function(req, cookies) {
+    var email = cookies.get('email');
+    var uid = cookies.get('uid');
+    if(!email || !uid) {
+        return false;
+    }
+
+    return uid == buildUid(email, req);
 };
 
 server.listen(8080);
@@ -109,4 +157,12 @@ function firstRestSplit(s) {
 }
 
 
+function sendFile(res, path) {
+    fs.readFile(__dirname + path, function(err, data){
+        if (err) return send404(res);
+        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
+        res.write(data, 'utf8');
+        res.end();
+    });
+}
 
