@@ -14,6 +14,10 @@ dom.game = function() {
 };
 
 
+dom.game.prototype.isStarted = function() {
+	return turn_ >= 0;
+}
+
 dom.game.prototype.addPlayer = function(client) {
 	var p = new dom.player(this, client);
 	this.players.push(p);

@@ -21,6 +21,9 @@ dom.game = require('./game/game').game;
 
 var db = new sqlite3.Database('storage.db3');
 
+var games = {};
+var gamesByPlayer = {};
+
 server = http.createServer(function(req, res){
   var cookies = new Cookies(req, res);
   // your normal server code
@@ -28,15 +31,10 @@ server = http.createServer(function(req, res){
   switch (path){
     case '/':
 	  if(checkAuth(req, cookies)) {
-		  sendFile(res, '/dominion.html');
+		  sendFile(res, '/menu.html');
 	  } else {
 		  sendFile(res, '/login.html');
 	  }
-      break;
-      
-    case '/json.js':
-    case '/chat.html':
-	  sendFile(res, path);
       break;
       
 	case '/login':
@@ -59,6 +57,83 @@ server = http.createServer(function(req, res){
 
             sendRedirect(res, '/');
         });
+        break;
+
+    case '/host':
+        // process: get params, check valid, check existence of game. create game, create entry for it, add new player, redirect to game lobby.
+        if(!checkAuth(req, cookies)) {
+            send404(res);
+            break;
+        }
+
+        var query = url.parse(req.url, true).query;
+        if(!query || !query.name) {
+            sendError(res, '/', 'You must supply a game name.');
+            break;
+        }
+
+        var email = cookies.get('email'); // safe because of checkAuth
+        if(gamesByPlayer[email]) {
+            sendRedirect(res, '/game');
+            break;
+        }
+
+        if(games[query.name]) {
+            sendError(res, '/', 'A game with that name already exists.');
+            break;
+        }
+
+        // after all that, we're free to create a game
+        games[query.name] = new dom.game();
+        // the player will be added once the socket is connected
+        gamesByPlayer[email] = query.name;
+
+        sendRedirect(res, '/game');
+        break;
+
+    case '/join':
+        // process: get params, check valid, check existence of game and gamesByPlayer entry. redirect player to game.
+        if(!checkAuth(req, cookies)) {
+            send404(res);
+            break;
+        }
+
+        var query = url.parse(req.url, true).query;
+        if(!query || !query.name) {
+            sendError(res, '/', 'You must supply a game name.');
+            break;
+        }
+
+        var email = cookies.get('email'); // safe because of checkAuth
+        if(gamesByPlayer[email]) {
+            sendRedirect(res, '/game');
+            break;
+        }
+
+        if(!games[query.name]) {
+            sendError(res, '/', 'No game with that name exists.');
+            break;
+        }
+
+        // otherwise add the player to the game
+        gamesByPlayer[email] = query.name;
+
+        sendRedirect(res, '/game');
+        break;
+
+    case '/game':
+        if(!checkAuth(req, cookies)) {
+            sendRedirect(res, '/');
+            break;
+        }
+
+        var email = cookies.get('email'); // safe
+        if(!gamesByPlayer[email]) {
+            sendRedirect(res, '/');
+            break;
+        }
+
+        sendFile(res, '/dominion.html');
         break;
 
     default: send404(res);
@@ -89,6 +164,11 @@ checkAuth = function(req, cookies) {
     }
 
     return uid == buildUid(email, req);
+};
+
+sendError = function(res, link, message) {
+    res.write('<html><body>' + message + '<br /><a href="' + link + '">Go back</a></body></html>');
+    res.end();
 };
 
 server.listen(8080);

@@ -1,0 +1,29 @@
+<html>
+<head><title>Dominion - Menu</title></head>
+<body>
+<h1>Menu</h1>
+
+<h3>Host Game</h3>
+<form method="GET" action="/host">
+    <table style="border: 0">
+        <tr>
+            <td><label for="hostname">Game name: </label></td>
+            <td><input id="hostname" type="text" name="name" size=20 maxlength=50 /></td>
+        </tr>
+        <tr><td><input type="submit" value="Host Game" /></td></tr>
+    </table>
+</form>
+<br /><br />
+
+<h3>Join Game</h3>
+<form method="GET" action="/join">
+    <table style="border: 0">
+        <tr>
+            <td><label for="joinname">Game name: </label></td>
+            <td><input id="joinname" type="text" name="name" size=20 maxlength=50 /></td>
+        </tr>
+        <tr><td><input type="submit" value="Join Game" /></td></tr>
+    </table>
+</form>
+
+</body></html>
