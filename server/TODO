@@ -1,5 +1,3 @@
-- Spy is an Attack but doesn't appear as one in the web UI and perhaps in cards.js
-- Spy seems to ask for the same player twice. Investigate.
 - Bureaucrat didn't seem to report what I had to do. I guess that's really part of the logging.
 - Need to see everyone's hand, discard and deck sizes.
 - Some sense of persistent identity, so that we can refresh and still be connected.

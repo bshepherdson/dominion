@@ -155,40 +155,56 @@ rules.maybe = function(pred, when) {
 	};
 };
 
-rules.everyOtherPlayer = function(isAttack, f) {
-	return rules.everyPlayer(false, isAttack, f);
+rules.everyOtherPlayer = function(inParallel, isAttack, f) {
+	return rules.everyPlayer(false, inParallel, isAttack, f);
 };
 
-rules.everyPlayer = function(includeMe, isAttack, f) {
-	return function(p, c) {
-		var responses = {};
-		var sent = 0;
-		var completed = 0;
-		var doneSending = false;
+rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
+	if(inParallel) {
+		return function(p, c) {
+			var sent = 0;
+			var completed = 0;
+			var doneSending = false;
 
-		var cont = function() {
-			completed++;
-			if(doneSending && completed >= sent) {
-				c();
+			var cont = function() {
+				completed++;
+				if(doneSending && completed >= sent) {
+					c();
+				}
+			};
+
+			for(var i = 0; i < p.game_.players.length; i++) {
+				if((includeMe && p.id_ == p.game_.players[i].id_)
+				|| (p.id_ != p.game_.players[i].id_ && 
+					 (!isAttack || !p.safeFromAttack()))){
+					sent++;
+					f(p, p.game_.players[i], cont);
+				}
 			}
+
+			doneSending = true;
+			if(completed >= sent) {
+				c(); // they've all returned already
+			}
+
+			// otherwise I just return and wait for the continuations to do their thing.
 		};
+	} else {
+		return function(p, c) {
+			var repeat = function(index) {
+				if(index >= p.game_.players.length) {
+					c();
+					return;
+				}
 
-		for(var i = 0; i < p.game_.players.length; i++) {
-			if((includeMe && p.id_ == p.game_.players[i].id_)
-			|| (p.id_ != p.game_.players[i].id_ && 
-			     (!isAttack || !p.safeFromAttack()))){
-				sent++;
-				f(p, p.game_.players[i], cont);
-			}
-		}
+				f(p, p.game_.players[index], function() {
+					repeat(index+1);
+				});
+			};
 
-		doneSending = true;
-		if(completed >= sent) {
-			c(); // they've all returned already
-		}
-
-		// otherwise I just return and wait for the continuations to do their thing.
-	};
+			repeat(0);
+		};
+	}
 };
 
 
@@ -280,7 +296,7 @@ dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a car
 
 dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 }, 4, 'Gain a Silver card; put it on top of your deck. Each other player reveals a Victory card from his hand and puts it on his deck (or reveals a hand with no Victory cards).', [
 	rules.gainCard('Silver', function(p,card) { p.deck_.push(card); }),
-	rules.everyOtherPlayer(true, function(active, p, c) {
+	rules.everyOtherPlayer(true, true, function(active, p, c) {
 		var victoryCards = p.hand_.filter(function(card) { return card.types['Victory']; });
 		if(victoryCards.length == 0) {
 			console.log('Player ' + p.id_ + ' reveals a hand with no victory cards.');
@@ -336,7 +352,7 @@ dom.cards['Moat'] = new dom.card('Moat', { 'Action': 1, 'Reaction': 1 }, 2, '+2 
 
 dom.cards['Militia'] = new dom.card('Militia', { 'Action': 1, 'Attack': 1 }, 4, '+2 Coin. Each other player discards down to 3 cards in his hand.', [
 	rules.plusCoin(2),
-	rules.everyOtherPlayer(true, function(active, p, c) {
+	rules.everyOtherPlayer(true, true, function(active, p, c) {
 		var repeat = function() {
 			if(p.hand_.length <= 3) {
 				c();
@@ -378,10 +394,10 @@ dom.cards['Remodel'] = new dom.card('Remodel', { 'Action': 1 }, 4, 'Trash a card
 
 dom.cards['Smithy'] = new dom.card('Smithy', { 'Action': 1 }, 4, '+3 Cards.', [ rules.plusCards(3) ]);
 
-dom.cards['Spy'] = new dom.card('Spy', { 'Action': 1 }, 4, '+1 Card, +1 Action. Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice.', [
+dom.cards['Spy'] = new dom.card('Spy', { 'Action': 1, 'Attack': 1 }, 4, '+1 Card, +1 Action. Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice.', [
 	rules.plusCards(1),
 	rules.plusActions(1),
-	rules.everyPlayer(true, true, function(active, p, c) {
+	rules.everyPlayer(true, false, true, function(active, p, c) {
 		var options = [
 			new dom.Option('back', 'Put it back on the deck'),
 			new dom.Option('discard', 'Discard it')
@@ -405,7 +421,7 @@ dom.cards['Spy'] = new dom.card('Spy', { 'Action': 1 }, 4, '+1 Card, +1 Action. 
 ]);
 
 dom.cards['Thief'] = new dom.card('Thief', { 'Action': 1, 'Attack': 1 }, 4, 'Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one of them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.', [
-	rules.everyOtherPlayer(true, function(active, p, c) {
+	rules.everyOtherPlayer(true, false, function(active, p, c) {
 		if(p.deck_.length == 0){
 			p.shuffleDiscards_();
 		}
@@ -485,7 +501,7 @@ dom.cards['Throne Room'] = new dom.card('Throne Room', { 'Action': 1 }, 4, 'Choo
 dom.cards['Council Room'] = new dom.card('Council Room', { 'Action': 1 }, 5, '+4 Cards. +1 Buy. Each other player draws a card.', [
 	rules.plusCards(4),
 	rules.plusBuys(1),
-	rules.everyOtherPlayer(false, function(active, p, c) {
+	rules.everyOtherPlayer(false, true, function(active, p, c) {
 		var f = rules.plusCards(1);
 		f(p,c);
 	})
@@ -576,7 +592,7 @@ dom.cards['Market'] = new dom.card('Market', { 'Action': 1 }, 5, '+1 Card, +1 Ac
 
 dom.cards['Witch'] = new dom.card('Witch', { 'Action': 1, 'Attack': 1 }, 5, '+2 Cards. Each other player gains a Curse card.', [
 	rules.plusCards(2),
-	rules.everyOtherPlayer(true, function(active, p, c) {
+	rules.everyOtherPlayer(true, true, function(active, p, c) {
 		p.buyCard(p.game_.indexInKingdom('Curse'), false); // NOT free, that will cost 0 and deplete the stack by 1.
 		c();
 	})
