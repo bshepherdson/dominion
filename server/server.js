@@ -54,7 +54,7 @@ server = http.createServer(function(req, res){
   
   	    var hashedpwd = Hash.sha256(query.dompwd);
   	    var sql = db.get('SELECT * FROM User WHERE email = ? AND password = ? LIMIT 1', { 1: query.email, 2: hashedpwd }, function(err, row) {
-  		    if(err || !res) { // query failed
+  		    if(err || !row) { // query failed
   		        sendRedirect(res, '/login.html');
   		        return;
   		    }
@@ -63,6 +63,43 @@ server = http.createServer(function(req, res){
             cookies.set('uid', buildUid(query.email, req));
 
             sendRedirect(res, '/');
+        });
+        break;
+
+    case '/register':
+        var query = url.parse(req.url, true).query;
+        if(!query || !query.email || !query.dompwd || !query.dompwd2) { // improper request
+            sendRedirect(res, '/register.html');
+            break;
+        }
+
+        if(query.dompwd != query.dompwd2) {
+            sendError(res, '/register.html', 'Passwords do not match.');
+            break;
+        }
+
+        var hashedpwd = Hash.sha256(query.dompwd);
+  	    var sql = db.get('SELECT * FROM User WHERE email = ? LIMIT 1', { 1: query.email }, function(err, row) {
+            if(err) {
+                sendRedirect(res, '/register.html');
+                return;
+            }
+  		    if(row) {
+  		        sendError(res, '/register.html', 'A user with that email address already exists.');
+  		        return;
+  		    }
+
+            db.run('INSERT INTO User (email,password) VALUES (?,?)', { 1: query.email, 2: hashedpwd }, function(err) {
+                if(err) {
+                    sendRedirect(res, '/register.html');
+                    return;
+                }
+                
+                cookies.set('email', query.email);
+                cookies.set('uid', buildUid(query.email, req));
+
+                sendRedirect(res, '/');
+            });
         });
         break;
 
@@ -145,7 +182,8 @@ server = http.createServer(function(req, res){
         break;
 
     case '/jquery.cookie.js':
-        sendFile(res, '/jquery.cookie.js');
+    case '/register.html':
+        sendFile(res, path);
         break;
 
     default: send404(res);
@@ -206,8 +244,6 @@ io.on('connection', function(client){
 			client.broadcast(msg);
 		}
 	} else if('decision' in message) {
-        console.log(player);
-        console.log(message);
 		if(player.handlers.length > 0) {
 			var h = player.handlers[0];
 			if(h(player, message.decision)) {
@@ -217,7 +253,6 @@ io.on('connection', function(client){
 			}
 		}
 	} else if('connect' in message) {
-        console.log(message);
         if(message.connect.length != 2 || !message.connect[0] || !message.connect[1]) {
             return;
         }
@@ -291,7 +326,6 @@ function firstRestSplit(s) {
 
 function sendFile(res, path, opt_args) {
     fs.readFile(__dirname + path, 'utf8', function(err, data){
-        console.log(data);
         if (err) return send404(res);
         if(opt_args) data = vsprintf(data, opt_args);
         res.writeHead(200, {'Content-Type': path.substring(path.length-3) == '.js' ? 'text/javascript' : 'text/html'})
