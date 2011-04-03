@@ -10,8 +10,10 @@ dom.Option = require('./decision').Option;
 // static variables
 var playerCount = 1;
 
-dom.player = function(game, client) {
+dom.player = function(game, client, name) {
 	this.id_ = playerCount++;
+	this.name = name;
+
 	this.discards_ = dom.cards.starterDeck(); // start them in the discards
 	this.deck_ = [];                          // and an empty deck
 	this.inPlay_ = [];

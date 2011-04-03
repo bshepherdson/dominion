@@ -21,8 +21,8 @@ dom.game = require('./game/game').game;
 
 var db = new sqlite3.Database('storage.db3');
 
-var games = {};
-var gamesByPlayer = {};
+var games = {}; // dom.game objects indexed by game name
+var gamesByPlayer = {}; // game names indexed by player email
 
 server = http.createServer(function(req, res){
   var cookies = new Cookies(req, res);
@@ -136,6 +136,10 @@ server = http.createServer(function(req, res){
         sendFile(res, '/dominion.html');
         break;
 
+    case '/jquery.cookie.js':
+        sendFile(res, '/jquery.cookie.js');
+        break;
+
     default: send404(res);
   }
 }),
@@ -163,6 +167,8 @@ checkAuth = function(req, cookies) {
         return false;
     }
 
+    console.log('checkAuth: ' + email + ', ' + uid + ' vs. ' + buildUid(email, req));
+
     return uid == buildUid(email, req);
 };
 
@@ -177,12 +183,9 @@ server.listen(8080);
 // simplest chat application evar
 var io = io.listen(server);
   
-var thegame = new dom.game();
-
 io.on('connection', function(client){
-  var player = thegame.addPlayer(client);
-  client.broadcast({ announcement: client.sessionId + ' connected' });
-  
+  var game, player;
+
   client.on('message', function(message){
 	if('chat' in message) {
 		if(message.chat[0] == '/') {
@@ -201,17 +204,61 @@ io.on('connection', function(client){
 				client.send({ retry: 1 });
 			}
 		}
-	}
+	} else if('connect' in message) {
+        console.log('top of connect');
+        console.log(message);
+        if(message.connect.length != 2 || !message.connect[0] || !message.connect[1]) {
+            return;
+        }
+        console.log('validated');
+
+        var email = message.connect[0];
+        var uid   = message.connect[1];
+        if(uid != buildUid(email, client)) {
+            return;
+        }
+        console.log('uid validated');
+
+        if(!game) {
+            if(!gamesByPlayer[email]) return;
+            game = games[gamesByPlayer[email]];
+            if(!game) return;
+        }
+
+        console.log('game checked: ' + (!!game));
+
+        if(!player) {
+            for(var i = 0; i < game.players.length; i++) {
+                if(game.players[i].name == email) {
+                    player = game.players[i];
+                }
+            }
+            if(!player) { // create a new player
+                player = game.addPlayer(client, email);
+            }
+        }
+
+        console.log('player checked: ' + (!!player));
+
+        if(game.isStarted()) {
+            client.send({ game_started: 1 });
+        } else {
+            game.sendToAll({ players: game.players.map(function(x) { return x.name }), is_host: game.host == email });
+        }
+        console.log('bottom of connect');
+    } else if('start_game' in message) {
+        if(game.players.length == 1) {
+            return; // ignore click with only one player.
+        }
+
+        // otherwise begin the game. first send the start message, then start the game
+        game.sendToAll({ game_started: 1 });
+
+        game.startGame();
+    }
+
   });
 
-  client.on('disconnect', function(){
-    client.broadcast({ announcement: client.sessionId + ' disconnected' });
-  });
-
-  // DEBUG
-  if(thegame.players.length == 2) {
-	  thegame.startGame();
-  }
 });
 
 

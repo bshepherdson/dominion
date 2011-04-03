@@ -7,10 +7,12 @@ dom.cards = require('./cards').cards;
 dom.card = require('./cards').card;
 dom.utils = require('./utils');
 
-dom.game = function() {
+dom.game = function(host) {
 	this.players = [];
 	this.turn_ = -1; // gets bumped by nextPlayer before starting.
 	this.kingdom = [];
+
+	this.host = host; // host's name
 };
 
 
@@ -18,8 +20,8 @@ dom.game.prototype.isStarted = function() {
 	return turn_ >= 0;
 }
 
-dom.game.prototype.addPlayer = function(client) {
-	var p = new dom.player(this, client);
+dom.game.prototype.addPlayer = function(client, name) {
+	var p = new dom.player(this, client, name);
 	this.players.push(p);
 	return p;
 };

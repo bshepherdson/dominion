@@ -1,0 +1,15 @@
+A description of the protocol over the socket between the client and server.
+
+- Client loads the page, showing the lobby view initially.
+- Client connects the socket
+- Client sends { connect: [email, uid] }
+- Server sends either { players: [...], is_host: true/false} listing names for the lobby list, or { game_started: 1 } if the game is underway (see below)
+
+New game:
+- The server occasionally sends { players: [...], is_host: true/false } messages showing the player list, which should be updated.
+- If the client is the host, he has the button to send a { start_game: 1 } message.
+- On game start the server sends everyone a { game_started: 1 }
+
+After { game_started: 1 } we're back to the original protocol I've already implemented.
+
+

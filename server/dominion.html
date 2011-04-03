@@ -4,6 +4,7 @@
     <title>Dominion</title>
         
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+	<script src="/jquery.cookie.js"></script>
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
@@ -34,13 +35,30 @@
 		} else if ('turn_over' in obj) {
 			$("#decision").html('<p>Your turn is over.</p>');
 		} else if ('game_over' in obj) {
-			var str = ''
+			var str = '';
 			for(var i = 0; i < obj.game_over.length; i++) {
 				str += '<p>Player ' + obj.game_over[i].id + ': ' + obj.game_over[i].score + ' points</p>';
 			}
 			$("#decision").html(str);
 		} else if ('kingdom' in obj) {
 			kingdom(obj);
+		} else if ('players' in obj) {
+			var el = $("#lobbylist");
+			el.html('');
+			for(var i = 0; i < obj.players.length; i++) {
+				el.append('<p>' + obj.players[i] + '</p>');
+			}
+
+			if(obj.is_host) {
+				$("#startgame").removeClass('hidden');
+			}
+		} else if ('game_started' in obj) {
+			$("#decision").removeClass('hidden');
+			$("#kingdom").removeClass('hidden');
+			$("#stackscontainer").removeClass('hidden');
+			$("#lobby").addClass('hidden');
+
+			$("#decision").html('<p>Game underway. Wait for your turn.</p>');
 		} else {
 			console.log('unknown message type');
 			console.log(obj);
@@ -114,33 +132,50 @@
         return msg.replace(/</g, '&lt;').replace(/>/g, '&gt;');
       };
       
-      var socket = new io.Socket(null, {port: 8080, rememberTransport: false});
-      socket.connect();
-      socket.on('message', function(obj){
-        if ('buffer' in obj){
-          document.getElementById('form').style.display='block';
-          document.getElementById('chat').innerHTML = '';
-          
-          for (var i in obj.buffer) message(obj.buffer[i]);
-        } else message(obj);
-      });
-      
-      socket.on('connect', function(){ message({ message: ['System', 'Connected']})});
-      socket.on('disconnect', function(){ message({ message: ['System', 'Disconnected']})});
-      socket.on('reconnect', function(){ message({ message: ['System', 'Reconnected to server']})});
-      socket.on('reconnecting', function( nextRetry ){ message({ message: ['System', 'Attempting to re-connect to the server, next attempt in ' + nextRetry + 'ms']})});
-      socket.on('reconnect_failed', function(){ message({ message: ['System', 'Reconnected to server FAILED.']})});
+	  $(document).ready(function() {
+		  var socket = new io.Socket(null, {port: 8080, rememberTransport: false});
+		  socket.connect();
+		  socket.on('message', function(obj){
+			if ('buffer' in obj){
+			  document.getElementById('form').style.display='block';
+			  document.getElementById('chat').innerHTML = '';
+			  
+			  for (var i in obj.buffer) message(obj.buffer[i]);
+			} else message(obj);
+		  });
+		  
+		  socket.on('connect', function(){ message({ message: ['System', 'Connected']})});
+		  socket.on('disconnect', function(){ message({ message: ['System', 'Disconnected']})});
+		  socket.on('reconnect', function(){ message({ message: ['System', 'Reconnected to server']})});
+		  socket.on('reconnecting', function( nextRetry ){ message({ message: ['System', 'Attempting to re-connect to the server, next attempt in ' + nextRetry + 'ms']})});
+		  socket.on('reconnect_failed', function(){ message({ message: ['System', 'Reconnected to server FAILED.']})});
+
+		  // send my cookie so my socket can be associated with the right game
+		  console.log('cookie: ' + document.cookie);
+		  console.log('cookie: ' + $.cookie('email'));
+		  setTimeout(function() { socket.send({ connect: [$.cookie('email'), $.cookie('uid')] }); }, 1000);
+
+		  $("#startgame").click(function() {
+			  socket.send({ start_game: 1 });
+		  });
+	  });
     </script>
     
     <h1>Dominion</h1>
-	<div id="decision"></div>
-	<div id="kingdom">
+	<div id="decision" class="hidden"></div>
+	<div id="kingdom" class="hidden">
 		<h3>Kingdom</h3>
 		<div id="kingdomcontent"></div>
 	</div>
-	<div>
+	<div id="stackscontainer" class="hidden">
 		<h3>Stacks</h3>
 		<div id="stacks"></div>
+	</div>
+	<div id="lobby">
+		<h3>Lobby</h3>
+		<h4>Players currently waiting:</h4>
+		<div id="lobbylist"></div>
+		<input id="startgame" class="hidden" type="submit" value="Start Game" />
 	</div>
     <div id="chat"><p>Connecting...</p></div>
     <form id="form" onSubmit="send(); return false">
@@ -227,6 +262,10 @@
 
 	  table.kingdom td.name {
 		  font-style: bold;
+	  }
+
+	  .hidden {
+		  display: none;
 	  }
 
     </style>
