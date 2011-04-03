@@ -8,6 +8,8 @@ var http = require('http')
   , io = require('socket.io')
   , sys = require(process.binding('natives').util ? 'util' : 'sys')
   , sqlite3 = require('sqlite3')
+  , vsprintf = require('sprintf').vsprintf
+  , jade = require('jade')
   , server;
 
 require('joose');
@@ -31,7 +33,12 @@ server = http.createServer(function(req, res){
   switch (path){
     case '/':
 	  if(checkAuth(req, cookies)) {
-		  sendFile(res, '/menu.html');
+          var email = cookies.get('email');
+          if(gamesByPlayer[email]) {
+              sendGame(res, cookies);
+          } else {
+              sendFile(res, '/menu.html');
+          }
 	  } else {
 		  sendFile(res, '/login.html');
 	  }
@@ -84,7 +91,7 @@ server = http.createServer(function(req, res){
         }
 
         // after all that, we're free to create a game
-        games[query.name] = new dom.game();
+        games[query.name] = new dom.game(email);
         // the player will be added once the socket is connected
         gamesByPlayer[email] = query.name;
 
@@ -133,7 +140,8 @@ server = http.createServer(function(req, res){
             break;
         }
 
-        sendFile(res, '/dominion.html');
+        sendGame(res, cookies);
+
         break;
 
     case '/jquery.cookie.js':
@@ -143,6 +151,10 @@ server = http.createServer(function(req, res){
     default: send404(res);
   }
 }),
+
+sendGame = function(res, cookies) {
+    sendFile(res, '/dominion.html', [cookies.get('email'), cookies.get('uid')]);
+};
 
 send404 = function(res){
   res.writeHead(404);
@@ -166,8 +178,6 @@ checkAuth = function(req, cookies) {
     if(!email || !uid) {
         return false;
     }
-
-    console.log('checkAuth: ' + email + ', ' + uid + ' vs. ' + buildUid(email, req));
 
     return uid == buildUid(email, req);
 };
@@ -196,6 +206,8 @@ io.on('connection', function(client){
 			client.broadcast(msg);
 		}
 	} else if('decision' in message) {
+        console.log(player);
+        console.log(message);
 		if(player.handlers.length > 0) {
 			var h = player.handlers[0];
 			if(h(player, message.decision)) {
@@ -205,19 +217,16 @@ io.on('connection', function(client){
 			}
 		}
 	} else if('connect' in message) {
-        console.log('top of connect');
         console.log(message);
         if(message.connect.length != 2 || !message.connect[0] || !message.connect[1]) {
             return;
         }
-        console.log('validated');
 
         var email = message.connect[0];
         var uid   = message.connect[1];
         if(uid != buildUid(email, client)) {
             return;
         }
-        console.log('uid validated');
 
         if(!game) {
             if(!gamesByPlayer[email]) return;
@@ -225,12 +234,11 @@ io.on('connection', function(client){
             if(!game) return;
         }
 
-        console.log('game checked: ' + (!!game));
-
         if(!player) {
             for(var i = 0; i < game.players.length; i++) {
                 if(game.players[i].name == email) {
                     player = game.players[i];
+                    player.client = client;
                 }
             }
             if(!player) { // create a new player
@@ -238,14 +246,11 @@ io.on('connection', function(client){
             }
         }
 
-        console.log('player checked: ' + (!!player));
-
         if(game.isStarted()) {
             client.send({ game_started: 1 });
         } else {
             game.sendToAll({ players: game.players.map(function(x) { return x.name }), is_host: game.host == email });
         }
-        console.log('bottom of connect');
     } else if('start_game' in message) {
         if(game.players.length == 1) {
             return; // ignore click with only one player.
@@ -284,11 +289,13 @@ function firstRestSplit(s) {
 }
 
 
-function sendFile(res, path) {
-    fs.readFile(__dirname + path, function(err, data){
+function sendFile(res, path, opt_args) {
+    fs.readFile(__dirname + path, 'utf8', function(err, data){
+        console.log(data);
         if (err) return send404(res);
-        res.writeHead(200, {'Content-Type': path == 'json.js' ? 'text/javascript' : 'text/html'})
-        res.write(data, 'utf8');
+        if(opt_args) data = vsprintf(data, opt_args);
+        res.writeHead(200, {'Content-Type': path.substring(path.length-3) == '.js' ? 'text/javascript' : 'text/html'})
+        res.write(data);
         res.end();
     });
 }
