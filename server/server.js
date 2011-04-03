@@ -9,7 +9,6 @@ var http = require('http')
   , sys = require(process.binding('natives').util ? 'util' : 'sys')
   , sqlite3 = require('sqlite3')
   , vsprintf = require('sprintf').vsprintf
-  , jade = require('jade')
   , server;
 
 require('joose');
