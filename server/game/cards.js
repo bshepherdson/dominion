@@ -348,7 +348,9 @@ dom.cards['Feast'] = new dom.card('Feast', { 'Action': 1 }, 4, 'Trash this card.
 			});
 	}]);
 
-dom.cards['Moat'] = new dom.card('Moat', { 'Action': 1, 'Reaction': 1 }, 2, '+2 Cards. When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that Attack.', []);
+dom.cards['Moat'] = new dom.card('Moat', { 'Action': 1, 'Reaction': 1 }, 2, '+2 Cards. When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that Attack.', [
+	rules.plusCards(2)
+]);
 
 dom.cards['Militia'] = new dom.card('Militia', { 'Action': 1, 'Attack': 1 }, 4, '+2 Coin. Each other player discards down to 3 cards in his hand.', [
 	rules.plusCoin(2),
