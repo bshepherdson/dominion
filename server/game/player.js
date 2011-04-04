@@ -297,6 +297,8 @@ dom.player.prototype.calculateScore = function() {
 
 	score += gardens * Math.floor(cards/10);
 
+	console.log('Score for Player ' + this.id_ + ' = ' + score);
+
 	return score;
 };
 
