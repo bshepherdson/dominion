@@ -248,10 +248,13 @@ io.on('connection', function(client){
 			if(h(player, message.decision)) {
 				player.handlers.shift();
                 player.decisions.shift();
+                console.log('Decision handled. ' + player.handlers.length + ', ' + player.decisions.length);
 			} else {
 				client.send({ retry: 1 });
 			}
-		}
+		} else {
+            console.log('ERROR: Player ' + player.name + ' sent a response but no handler was available.');
+        }
 	} else if('connect' in message) {
         if(message.connect.length != 2 || !message.connect[0] || !message.connect[1]) {
             return;
@@ -263,7 +266,10 @@ io.on('connection', function(client){
             return;
         }
 
+        console.log('New client ' + email);
+
         if(!game) {
+            console.log('Setting game');
             if(!gamesByPlayer[email]) return;
             game = games[gamesByPlayer[email]];
             if(!game) return;
@@ -272,20 +278,25 @@ io.on('connection', function(client){
         if(!player) {
             for(var i = 0; i < game.players.length; i++) {
                 if(game.players[i].name == email) {
+                    console.log('Found player');
                     player = game.players[i];
                     player.client = client;
                 }
             }
             if(!player) { // create a new player
                 player = game.addPlayer(client, email);
+                console.log('Creating new player');
             }
         }
 
         if(game.isStarted()) {
+            console.log('Game already started');
             client.send({ game_started: 1 });
             if(player.id_ == game.players[game.turn_].id_) { // my turn, resend the kingdom and decision
+                console.log('My turn');
                 client.send(game.showKingdom());
                 if(player.decisions.length > 0) {
+                    console.log('Sending decision');
                     client.send({ decision: player.decisions[0].show() });
                 }
             }
