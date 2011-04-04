@@ -247,6 +247,7 @@ io.on('connection', function(client){
 			var h = player.handlers[0];
 			if(h(player, message.decision)) {
 				player.handlers.shift();
+                player.decisions.shift();
 			} else {
 				client.send({ retry: 1 });
 			}
@@ -282,6 +283,12 @@ io.on('connection', function(client){
 
         if(game.isStarted()) {
             client.send({ game_started: 1 });
+            if(player.id_ == game.players[game.turn_].id_) { // my turn, resend the kingdom and decision
+                client.send(game.showKingdom());
+                if(player.decisions.length > 0) {
+                    client.send({ decision: player.decisions[0].show() });
+                }
+            }
         } else {
             game.sendToAll({ players: game.players.map(function(x) { return x.name }), is_host: game.host == email });
         }

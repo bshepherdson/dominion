@@ -8,6 +8,10 @@ dom.Decision = function(player, options, message, info) {
 	this.info = info;
 };
 
+dom.Decision.prototype.show = function() {
+	return { info: this.info, message: this.message, options: this.options };
+};
+
 
 dom.Option = function(key, text) {
 	this.key = key;

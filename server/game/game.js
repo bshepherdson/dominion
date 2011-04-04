@@ -28,14 +28,7 @@ dom.game.prototype.addPlayer = function(client, name) {
 
 
 dom.game.prototype.decision = function(dec, cb) {
-	var payload = {
-		decision: {
-			info: dec.info,
-			message: dec.message,
-			options: dec.options
-		}
-	};
-
+	dec.player.decisions.push(dec);
 	dec.player.handlers.push(function(p, key) {
 		if(!key) {
 			return false; // cause a retry
@@ -45,7 +38,7 @@ dom.game.prototype.decision = function(dec, cb) {
 	});
 
 	console.log('sending decision to player');
-	dec.player.client.send(payload);
+	dec.player.client.send({ decision: dec.show() });
 };
 
 
@@ -87,7 +80,7 @@ dom.game.prototype.nextPlayer = function() {
 	if(this.turn_ >= 0) { // not first turn
 		this.players[this.turn_].client.send({ turn_over: 1 });
 	}
-	this.sendToAll({ kingdom: dom.cards.wireCards(this.kingdom), stacks: this.stackSizes() });
+	this.sendToAll(this.showKingdom());
 
 	this.turn_++;
 	if(this.turn_ >= this.players.length) {
@@ -98,6 +91,9 @@ dom.game.prototype.nextPlayer = function() {
 	this.checkEndOfGame();
 };
 
+dom.game.prototype.showKingdom = function() {
+	return { kingdom: dom.cards.wireCards(this.kingdom), stacks: this.stackSizes() };
+};
 
 dom.game.prototype.checkEndOfGame = function() {
 	var ixProvince = this.indexInKingdom('Province');
