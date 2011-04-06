@@ -5,4 +5,3 @@
 Bugs:
 - Thief seems to be broken
 - Ending of games is not handled gracefully. Should remove the game from the index so on a refresh the players see the menu again.
-- Moat didn't protect me.

@@ -197,9 +197,11 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 					return;
 				}
 
-				f(p, p.game_.players[index], function() {
-					repeat(index+1);
-				});
+				if(!p.safeFromAttack()) {
+					f(p, p.game_.players[index], function() {
+						repeat(index+1);
+					});
+				}
 			};
 
 			repeat(0);
