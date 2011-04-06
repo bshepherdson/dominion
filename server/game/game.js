@@ -125,6 +125,8 @@ dom.game.prototype.endGame = function() {
 		this.players[i].client.send(msg);
 	}
 
+	this.gameOver = true;
+
 };
 
 

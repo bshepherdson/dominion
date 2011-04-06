@@ -176,6 +176,17 @@ server = http.createServer(function(req, res){
             break;
         }
 
+		// if the game exists but is over, redirect to the menu and delete the game's entries.
+		if(gamesByPlayer[email] && games[gamesByPlayer[email]] && games[gamesByPlayer[email]].gameOver) {
+			var g = games[gamesByPlayer[email]];
+			for(var i = 0; i < g.players.length; i++) {
+				gamesByPlayer[g.players[i].name] = undefined;
+			}
+			games[gamesByPlayer[email]] = undefined;
+			sendRedirect(res, '/');
+			break;
+		}
+
         sendGame(res, cookies);
 
         break;
