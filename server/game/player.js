@@ -109,11 +109,15 @@ dom.player.prototype.removeFromHand = function(index) {
  */
 dom.player.prototype.playAction = function(index) {
 	if(index < 0 || index >= this.hand_.length) {
+		this.turnActionPhase();
 		return;
 	}
 
 	var card = this.hand_[index];
-	if(!card.types['Action']) return;
+	if(!card.types['Action']) {
+		this.turnActionPhase();
+		return;
+	}
 
 	this.removeFromHand(index);
 	this.inPlay_.push(card);
@@ -126,7 +130,10 @@ dom.player.prototype.playAction = function(index) {
 		rulesList = [ card.rules ]; // just a function
 	}
 
-	if(!rulesList) return;
+	if(!rulesList) {
+		console.log("ERROR: Can't happen. No rules list.');
+		return;
+	}
 
 	// gotta copy since we're going to consume them
 	this.rules_ = [];
