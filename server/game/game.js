@@ -13,6 +13,7 @@ dom.game = function(host) {
 	this.kingdom = [];
 
 	this.host = host; // host's name
+	this.log_ = [];
 };
 
 
@@ -38,7 +39,7 @@ dom.game.prototype.decision = function(dec, cb) {
 	});
 
 	console.log('sending decision to player');
-	dec.player.client.send({ decision: dec.show() });
+	dec.player.client.send({ decision: dec.show(), log: this.log_ });
 };
 
 
@@ -112,6 +113,8 @@ dom.game.prototype.checkEndOfGame = function() {
 
 
 dom.game.prototype.endGame = function() {
+	this.log('Game over');
+
 	var scores = [];
 	for(var i = 0; i < this.players.length; i++) {
 		scores.push({ id: this.players[i].id_, score: this.players[i].calculateScore() });
@@ -130,40 +133,6 @@ dom.game.prototype.endGame = function() {
 };
 
 
-	//// count victory points for each player
-	//var maxScore = -10000;
-	//var maxIndexes = [];
-	//for(var i = 0; i < this.players.length; i++) {
-	//	var score = this.players[i].calculateScore();
-	//	console.log('Player ' + this.players[i].id_ + ' scored ' + score);
-	//	if(score == maxScore) {
-	//		maxIndexes.push(i);
-	//	} else if(score > maxScore) {
-	//		maxScore = score;
-	//		maxIndexes = [i];
-	//	}
-	//}
-
-	//console.log('\n\nGame over.');
-	//var str = 'Player';
-	//if(maxIndexes.length > 1) {
-	//	str += 's ';
-	//	for(var i = 0; i < maxIndexes.length; i++) {
-	//		str += this.players[maxIndexes[i]].id_;
-	//		if(i+1 < maxIndexes.length) {
-	//			str += ', ';
-	//		}
-	//	}
-	//	str += ' tied for the win.';
-	//} else if({
-	//	str += ' ' + this.players[maxIndexes[0]].id_ + ' wins.'
-	//}
-
-	//console.log(str);
-	//setTimeout(process.exit, 1000);
-//};
-
-
 dom.game.prototype.indexInKingdom = function(name) {
 	for(var i = 0; i < this.kingdom.length; i++) {
 		if(this.kingdom[i].card.name == name) {
@@ -173,57 +142,25 @@ dom.game.prototype.indexInKingdom = function(name) {
 };
 
 
-// MAIN
+// LOGGING FUNCTIONS
+// A thought about logging: what's the cost of sending the complete log? Over
+// a game with 40 decisions and 100 bytes average per turn and 4 players, sending
+// the complete log every time totals up to 1.2MB sent total to each player.
+// I'm not concerned about my bandwidth, but rather the total downloaded by the clients.
+// But 1.2MB each is not too much, so I'll run with this for now.
+//
+// Conclusion: Carry on sending the complete log with every decision until I have a need to do otherwise.
 
+// logs a string with no parameters.
+dom.game.prototype.log = function(str) {
+	this.log_.push(str);
+};
 
-var stdin = process.openStdin();
-stdin.setEncoding('utf8');
-
-var inputSuccess = [];
-var inputFailure = [];
-var inputPredicate = [];
-var inputStrings = [];
-var inputDebug;
-stdin.on('data', function(chunk) {
-	if(chunk == 'debug\n') {
-		inputDebug();
-		return;
-	}
-
-	if(inputPredicate.length == 0 || inputSuccess.length == 0 || inputFailure == 0) return;
-	if(inputPredicate[0](chunk)) {
-		inputSuccess[0](chunk);
-
-		inputPredicate.shift();
-		inputSuccess.shift();
-		inputFailure.shift();
-	} else {
-		inputPredicate.shift();
-		inputSuccess.shift();
-		var f = inputFailure.shift();
-		f();
-	}
-
-	if(inputStrings.length > 0) {
-		process.stdout.write(inputStrings.shift());
-	}
-});
-
-stdin.on('end', function() {
-	process.exit();
-});
-
-
-function send(str, p, s, f) {
-	inputPredicate.push(p);
-	inputSuccess.push(s);
-	inputFailure.push(f);
-	if(inputSuccess.length == 1) {
-		process.stdout.write('\n\n' + str);
-	} else {
-		inputStrings.push('\n\n' + str);
-	}
-}
+// logs a string with the given player's name at the beginning
+// counterpart function dom.player.logMe is a helper for this.
+dom.game.prototype.logPlayer = function(str, p) { 
+	this.log_.push(p.name + ' ' + str);
+};
 
 
 exports.game = dom.game;

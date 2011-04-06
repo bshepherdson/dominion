@@ -54,12 +54,15 @@ dom.player.prototype.turnStart = function() {
 	this.buys = 1;
 	this.coin = 0;
 
+	this.logMe('starts turn.');
+
 	this.turnActionPhase();
 };
 
 
 dom.player.prototype.turnActionPhase = function() {
 	if(this.actions <= 0) {
+		this.logMe('has no Actions left.');
 		this.turnBuyPhase();
 		return;
 	}
@@ -74,6 +77,7 @@ dom.player.prototype.turnActionPhase = function() {
 
 	this.game_.decision(dec, dom.utils.bind(function(key) {
 		if(key == 'buy') {
+			this.logMe('ends Action phase.');
 			this.turnBuyPhase();
 			return;
 		}
@@ -135,6 +139,9 @@ dom.player.prototype.playAction = function(index) {
 		return;
 	}
 
+	// this card is for real, log it
+	this.logMe('plays ' + card.name + '.');
+
 	// gotta copy since we're going to consume them
 	this.rules_ = [];
 	for(var i = 0; i < rulesList.length; i++) {
@@ -175,8 +182,6 @@ dom.player.prototype.turnBuyPhase = function() {
 		}
 	}
 
-	console.log('buy phase. coin = ' + this.coin);
-
 	var p = this;
 	dom.utils.gainCardDecision(this, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
 		'Buys: ' + this.buys,
@@ -186,7 +191,6 @@ dom.player.prototype.turnBuyPhase = function() {
 		return dom.utils.decisionHelper(
 			function() { p.turnCleanupPhase(); },
 			function(index) {
-				console.log('buying card: ' + index);
 				p.buyCard(index, false);
 				p.turnBuyPhase();
 			},
@@ -203,6 +207,8 @@ dom.player.prototype.buyCard = function(index, free) {
 	var inKingdom = this.game_.kingdom[index];
 	this.discards_.push(inKingdom.card);
 	inKingdom.count--;
+
+	this.logMe( (free ? 'gains' : 'buys') + ' ' + inKingdom.card.name + '.');
 
 	if(!free) {
 		this.coin -= inKingdom.card.cost;
@@ -229,6 +235,7 @@ dom.player.prototype.turnCleanupPhase = function() {
 
 dom.player.prototype.turnEnd = function() {
 	console.log(this);
+	this.logMe(' ends turn.');
 	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
 	this.game_.nextPlayer();
 };
@@ -255,6 +262,7 @@ dom.player.prototype.draw = function(opt_n) {
 /** @param {number} index The index of the card to discard. */
 dom.player.prototype.discard = function(index) {
 	var card = this.hand_[index];
+	p.logMe('discarded ' + card.name + '.');
 	this.removeFromHand(index);
 	this.discards_.push(card);
 };
@@ -312,6 +320,11 @@ dom.player.prototype.calculateScore = function() {
 
 dom.player.prototype.safeFromAttack = function() {
 	return this.hand_.filter(function(c) { return c.name == 'Moat' }).length > 0;
+};
+
+// logs a message that begins with my name
+dom.player.prototype.logMe = function(str) {
+	this.game_.logPlayer(str, this);
 };
 
 

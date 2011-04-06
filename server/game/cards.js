@@ -38,17 +38,36 @@ function basicRule(field) {
 }
 
 /** @param {number} */
-rules.plusCoin = basicRule('coin');
+rules.plusCoin = function(amount) {
+	return function(p,c) {
+		p.coin += amount;
+		p.logMe('gains +' + amount + ' Coin.');
+		c();
+	};
+};
 /** @param {number} */
-rules.plusBuys = basicRule('buys');
+rules.plusBuys = function(amount) {
+	return function(p,c) {
+		p.coin += amount;
+		p.logMe('gains +' + amount + ' Buy' + (amount > 1 ? 's' : '') + '.');
+		c();
+	};
+};
 /** @param {number} */
-rules.plusActions = basicRule('actions');
+rules.plusActions = function(amount) {
+	return function(p,c) {
+		p.coin += amount;
+		p.logMe('gains +' + amount + ' Action' + (amount > 1 ? 's' : '') + '.');
+		c();
+	};
+};
 /** @param {number} */
 rules.plusCards = function(amount) {
 	return function(p,c) {
 		for(var i=0; i < amount; i++) {
 			p.draw();
 		}
+		p.logMe('draws ' + amount + ' card' + (amount > 1 ? 's' : '') + '.');
 		c();
 	};
 };
@@ -179,6 +198,8 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 					 (!isAttack || !p.safeFromAttack()))){
 					sent++;
 					f(p, p.game_.players[i], cont);
+				} else if(isAttack && p.safeFromAttack()) {
+					p.logMe('is protected by Moat.');
 				}
 			}
 
@@ -197,7 +218,9 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 					return;
 				}
 
-				if(!p.safeFromAttack()) {
+				if(isAttack && p.safeFromAttack()) {
+					p.logMe('is protected by Moat.');
+				} else {
 					f(p, p.game_.players[index], function() {
 						repeat(index+1);
 					});
@@ -226,7 +249,7 @@ dom.cards['Silver'] = new dom.card('Silver', { 'Treasure': 1 }, 3, '', rules.plu
 dom.cards['Copper'] = new dom.card('Copper', { 'Treasure': 1 }, 0, '', rules.plusCoin(1));
 
 dom.cards['Province'] = new dom.card('Province', { 'Victory': 1 }, 8, '', rules.nullRule);
-dom.cards['Duchy']   = new dom.card('Duchy',   { 'Victory': 1 }, 5, '', rules.nullRule);
+dom.cards['Duchy']    = new dom.card('Duchy',    { 'Victory': 1 }, 5, '', rules.nullRule);
 dom.cards['Estate']   = new dom.card('Estate',   { 'Victory': 1 }, 2, '', rules.nullRule);
 dom.cards['Curse']    = new dom.card('Curse',    { 'Curse': 1 },   0, '', rules.nullRule);
 
@@ -235,6 +258,7 @@ dom.cards['Curse']    = new dom.card('Curse',    { 'Curse': 1 },   0, '', rules.
 dom.cards['Cellar'] = new dom.card('Cellar', { 'Action': 1 }, 2, '+1 Action. Discard any number of cards. +1 Card per card discarded.', [
 	rules.plusActions(1),
 	rules.discardMany(function(p, c, discarded) {
+		p.logMe('draws ' + discarded.length + ' card' + (discarded.length == 1 ? '' : 's') + '.');
 		p.draw(discarded.length);
 		c();
 	})
@@ -244,6 +268,8 @@ dom.cards['Chapel'] = new dom.card('Chapel', { 'Action': 1 }, 2, 'Trash up to 4 
 	rules.repeatUpTo(4, 'Choose a card to trash.', 'Done trashing', function(p) {
 		return dom.utils.cardsToOptions(p.hand_);
 	}, function(p, index) {
+		var card = p.hand_[index];
+		p.logMe('trashes ' + card.name + '.');
 		p.removeFromHand(index); // remove it and don't put it anywhere
 	})
 ]);
@@ -253,6 +279,7 @@ dom.cards['Chancellor'] = new dom.card('Chancellor', { 'Action': 1}, 3, '+2 Coin
 	rules.yesNo('Do you want to move your deck to your discard pile?', function(p) {
 		dom.utils.append(p.discards_, p.deck_);
 		p.deck_ = [];
+		p.logMe('moves their deck to their discard pile.');
 	}, function(p) { })
 ]);
 
@@ -276,8 +303,10 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 	}, rules.yesNo('Do you want to trash a Copper for +3 Coin?', function(p) {
 		for(var i = 0; i < p.hand_.length; i++) {
 			if(p.hand_[i].name == 'Copper') {
+				p.logMe('trashes a Copper for +3 Coin.');
 				p.removeFromHand(i);
 				p.coin += 3;
+				break;
 			}
 		}
 	}, function(p){ }))
@@ -288,7 +317,10 @@ dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a car
 		dom.utils.gainCardDecision(p, 'Gain a card costing up to 4 Coin', 'Gain nothing', [], function(card) { return card.cost <= 4; },
 			function(repeat) { 
 				return dom.utils.decisionHelper(
-					function() { c(); },
+					function() {
+						p.logMe('chooses to gain nothing.');
+						c();
+					},
 					function(index) {
 						p.buyCard(index, true);
 						c();
@@ -301,10 +333,14 @@ dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 
 	rules.everyOtherPlayer(true, true, function(active, p, c) {
 		var victoryCards = p.hand_.filter(function(card) { return card.types['Victory']; });
 		if(victoryCards.length == 0) {
-			console.log('Player ' + p.id_ + ' reveals a hand with no victory cards.');
+			var names = [];
+			for(var i = 0; i < p.hand_.length; i++) {
+				names.push(p.hand_[i].name);
+			}
+			p.logMe('reveals a hand with no Victory cards: ' + names.join(', '));
 			c();
 		} else if(victoryCards.length == 1) {
-			console.log('Player ' + p.id_ + ' has only one Victory card, a ' + victoryCards[0].name + ', and is forced to put it on his deck.');
+			p.logMe('has only one Victory card, a ' + victoryCards[0].name + ', and is forced to put it on their deck.');
 			for(var i = 0; i < p.hand_.length; i++) {
 				if(p.hand_[i].types['Victory']) {
 					var card = p.hand_[i];
@@ -321,7 +357,7 @@ dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 
 				function(c) { return c.types['Victory']; },
 				function(index) {
 					var card = p.hand_[index];
-					console.log('He chose ' + card.name);
+					p.logMe('chooses to put a ' + card.name + ' from their hand on top of their deck.');
 					p.removeFromHand(index);
 					p.deck_.push(card);
 					c();
@@ -334,7 +370,10 @@ dom.cards['Feast'] = new dom.card('Feast', { 'Action': 1 }, 4, 'Trash this card.
 	function(p,c) {
 		var card = p.inPlay_[p.inPlay_.length-1];
 		if(card.name == 'Feast') {
+			p.logMe('trashes Feast.');
 			p.inPlay_.pop();
+		} else {
+			p.logMe('is unable to trash Feast.');
 		}
 		c();
 	},
@@ -379,13 +418,17 @@ dom.cards['Remodel'] = new dom.card('Remodel', { 'Action': 1 }, 4, 'Trash a card
 		dom.utils.handDecision(p, 'Choose a card to trash for Remodel.', 'Do not trash anything (and gain no card).', dom.utils.const(true),
 			function(index) {
 				var card = p.hand_[index];
+				p.logMe('trashes ' + card.name + '.');
 				p.removeFromHand(index);
 				var maxCost = card.cost + 2;
 
 				dom.utils.gainCardDecision(p, 'Choose a card to gain (max value ' + maxCost + ')', 'Do not gain anything.', [], function(c){ return c.cost <= maxCost; },
 					function(repeat) {
 						return dom.utils.decisionHelper(
-							c,
+							function() {
+								p.logMe('chooses to gain nothing.');
+								c();
+							},
 							function(index) {
 								p.buyCard(index, true);
 								c();
@@ -411,13 +454,16 @@ dom.cards['Spy'] = new dom.card('Spy', { 'Action': 1, 'Attack': 1 }, 4, '+1 Card
 			p.shuffleDiscards_();
 		}
 		var card = p.deck_.pop();
+		p.logMe('reveals ' + card.name + '.');
 		var isMe = active.id_ == p.id_;
 		var dec = new dom.Decision(active, options, (isMe ? 'You' : 'Player ' + p.id_) + ' had a ' + card.name + ' on top of ' + (isMe ? 'your' : 'his') + ' deck.', []);
 		p.game_.decision(dec, function(key) {
 			if(key == 'back') {
 				p.deck_.push(card);
+				active.logMe('chooses to put it back.');
 			} else {
 				p.discards_.push(card);
+				active.logMe('chooses to discard it.');
 			}
 			c();
 		});
@@ -436,7 +482,7 @@ dom.cards['Thief'] = new dom.card('Thief', { 'Action': 1, 'Attack': 1 }, 4, 'Eac
 		}
 		cards.push(p.deck_.pop());
 
-		console.log('Player ' + p.id_ + ' revealed ' + cards[0].name + ' and ' + cards[1].name);
+		p.logMe('revealed ' + cards[0].name + ' and ' + cards[1].name + '.');
 
 		var options = [];
 		if(cards[0].types['Treasure']) {
@@ -452,13 +498,17 @@ dom.cards['Thief'] = new dom.card('Thief', { 'Action': 1, 'Attack': 1 }, 4, 'Eac
 			var dec = new dom.Decision(active, options, 'Choose what to do with the Player ' + p.id_ + '\'s revealed Treasures.', []);
 			active.game_.decision(dec, function(key) {
 				if(key == 'trash0') {
+					active.logMe('trashes ' + cards[0].name + '.');
 					p.discards_.push(cards[1]);
 				} else if(key == 'keep0') {
+					active.logMe('keeps ' + cards[0].name + '.');
 					active.discards_.push(cards[0]);
 					p.discards_.push(cards[1]);
 				} else if(key == 'trash1') {
+					active.logMe('trashes ' + cards[1].name + '.');
 					p.discards_.push(cards[0]);
 				} else if(key == 'keep1') {
+					active.logMe('keeps ' + cards[1].name + '.');
 					active.discards_.push(cards[1]);
 					p.discards_.push(cards[0]);
 				}
@@ -478,6 +528,8 @@ dom.cards['Throne Room'] = new dom.card('Throne Room', { 'Action': 1 }, 4, 'Choo
 				var card = p.hand_[index];
 				p.removeFromHand(index);
 				p.inPlay_.push(card);
+
+				p.logMe('uses Throne Room on ' + card.name + '.');
 
 				var rulesList;
 				if(typeof card.rules == 'object') { // array 
@@ -531,6 +583,7 @@ dom.cards['Library'] = new dom.card('Library', { 'Action': 1 }, 5, 'Draw until y
 	function(p,c) {
 		var repeat = function() {
 			if(p.hand_.length >= 7) {
+				p.logMe('has 7 cards in hand, done drawing for Library.');
 				c();
 				return;
 			}
@@ -539,6 +592,7 @@ dom.cards['Library'] = new dom.card('Library', { 'Action': 1 }, 5, 'Draw until y
 				p.shuffleDiscards_();
 			}
 			if(p.deck_.length == 0) { // they've run out of cards, so stop trying to draw.
+				p.logMe('is out of cards in their deck.');
 				c();
 				return;
 			}
@@ -553,14 +607,16 @@ dom.cards['Library'] = new dom.card('Library', { 'Action': 1 }, 5, 'Draw until y
 				var dec = new dom.Decision(p, options, 'You drew an Action, ' + card.name + '. You can either draw it into your hand or discard it.', []);
 				p.game_.decision(dec, function(key) {
 					if(key == 'take') {
+						p.logMe('draws a card.');
 						p.hand_.push(card);
 					} else {
+						p.logMe('sets aside ' + card.name + '.');
 						p.discards_.push(card);
 					}
 					repeat();
 				});
 			} else {
-				console.log('You drew ' + card.name + '.');
+				p.logMe('draws a card.');
 				p.hand_.push(card);
 				repeat();
 			}
@@ -577,10 +633,13 @@ dom.cards['Mine'] = new dom.card('Mine', { 'Action': 1 }, 5, 'Trash a Treasure c
 				var card = p.hand_[index];
 				p.removeFromHand(index);
 				if(card.name == 'Copper') {
+					p.logMe('trashes Copper for Silver.');
 					p.hand_.push(dom.cards['Silver']);
 				} else if(card.name == 'Silver') {
+					p.logMe('trashes Silver for Gold.');
 					p.hand_.push(dom.cards['Gold']);
 				} else {
+					p.logMe('trashes Gold for Gold.');
 					p.hand_.push(dom.cards['Gold']);
 				}
 				c();
@@ -606,7 +665,6 @@ dom.cards['Witch'] = new dom.card('Witch', { 'Action': 1, 'Attack': 1 }, 5, '+2 
 
 dom.cards['Adventurer'] = new dom.card('Adventurer', { 'Action': 1 }, 6, 'Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.', [
 	function(p, c) {
-		console.log('Starting');
 		if(p.deck_.length == 0) {
 			p.shuffleDiscards_();
 		}
@@ -614,7 +672,7 @@ dom.cards['Adventurer'] = new dom.card('Adventurer', { 'Action': 1 }, 6, 'Reveal
 		var toGo = 2;
 		while(toGo > 0 && p.deck_.length > 0) {
 			var card = p.deck_.pop();
-			console.log('Player ' + p.id_ + ' revealed ' + card.name);
+			p.logMe('reveals ' + card.name + '.');
 			if(card.types['Treasure']) {
 				toGo--;
 				p.hand_.push(card);
@@ -627,6 +685,7 @@ dom.cards['Adventurer'] = new dom.card('Adventurer', { 'Action': 1 }, 6, 'Reveal
 			}
 		}
 		
+		p.logMe('is done drawing for Adventurer.');
 		c();
 	}
 ]);

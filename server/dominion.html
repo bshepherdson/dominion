@@ -27,6 +27,7 @@
         else if ('whisper' in obj) putMessage('<b>' + esc(obj.whisper[0]) + ':</b> ' + esc(obj.whisper[1]), 'whisper');
 		else if ('decision' in obj) {
 			decision(obj.decision);
+			log(obj.log);
 		} else if ('accept' in obj) {
 			$("#decision").html('<p>Decision accepted.</p>');
 		} else if ('retry' in obj) {
@@ -56,6 +57,7 @@
 			$("#decision").removeClass('hidden');
 			$("#kingdom").removeClass('hidden');
 			$("#stackscontainer").removeClass('hidden');
+			$("#log").removeClass('hidden');
 			$("#lobby").addClass('hidden');
 
 			$("#decision").html('<p>Game underway. Wait for your turn.</p>');
@@ -80,6 +82,11 @@
 		  str += '</ul>';
 
 		  $("#decision").html(str);
+	  }
+
+	  function log(log) {
+		  $("#log").html(log.map(function(x) { return '<p>' + x + '</p>'; }).join(''));
+		  $("#log").scrollTop(10000000);
 	  }
 
 	  function choice(index, key) {
@@ -163,6 +170,7 @@
     
     <h1>Dominion</h1>
 	<div id="decision" class="hidden"></div>
+	<div id="log" class="hidden"></div>
 	<div id="kingdom" class="hidden">
 		<h3>Kingdom</h3>
 		<div id="kingdomcontent"></div>
@@ -267,6 +275,18 @@
 	  .hidden {
 		  display: none;
 	  }
+
+	  #log {
+		  overflow: auto;
+		  height: 150px;
+		  width: 400px;
+	  }
+
+      #log p {
+		  padding: 0px;
+		  margin: 0px;
+	  }
+
 
     </style>
     
