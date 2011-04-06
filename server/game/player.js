@@ -131,7 +131,7 @@ dom.player.prototype.playAction = function(index) {
 	}
 
 	if(!rulesList) {
-		console.log("ERROR: Can't happen. No rules list.');
+		console.log('ERROR: Can\'t happen. No rules list.');
 		return;
 	}
 
