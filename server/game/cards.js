@@ -464,6 +464,8 @@ dom.cards['Thief'] = new dom.card('Thief', { 'Action': 1, 'Attack': 1 }, 4, 'Eac
 				}
 				c();
 			});
+		} else {
+			c();
 		}
 	})
 ]);
