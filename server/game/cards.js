@@ -226,7 +226,7 @@ dom.cards['Silver'] = new dom.card('Silver', { 'Treasure': 1 }, 3, '', rules.plu
 dom.cards['Copper'] = new dom.card('Copper', { 'Treasure': 1 }, 0, '', rules.plusCoin(1));
 
 dom.cards['Province'] = new dom.card('Province', { 'Victory': 1 }, 8, '', rules.nullRule);
-dom.cards['Dutchy']   = new dom.card('Dutchy',   { 'Victory': 1 }, 5, '', rules.nullRule);
+dom.cards['Duchy']   = new dom.card('Duchy',   { 'Victory': 1 }, 5, '', rules.nullRule);
 dom.cards['Estate']   = new dom.card('Estate',   { 'Victory': 1 }, 2, '', rules.nullRule);
 dom.cards['Curse']    = new dom.card('Curse',    { 'Curse': 1 },   0, '', rules.nullRule);
 

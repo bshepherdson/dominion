@@ -54,7 +54,7 @@ dom.game.prototype.startGame = function() {
 	this.kingdom.push({ card: dom.cards['Silver'], count: 1000 });
 	this.kingdom.push({ card: dom.cards['Gold'], count: 1000 });
 	this.kingdom.push({ card: dom.cards['Estate'], count: 24-3*this.players.length });
-	this.kingdom.push({ card: dom.cards['Dutchy'], count: 12 });
+	this.kingdom.push({ card: dom.cards['Duchy'], count: 12 });
 	this.kingdom.push({ card: dom.cards['Province'], count: 12 });
 	this.kingdom.push({ card: dom.cards['Curse'], count: 30 });
 
