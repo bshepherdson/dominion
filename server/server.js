@@ -239,8 +239,8 @@ server.listen(8080);
 
 // socket.io, I choose you
 // simplest chat application evar
-var io = io.listen(server);
-  
+var io = io.listen(server, { transports: ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'] });
+
 io.on('connection', function(client){
   var game, player;
 

@@ -1,3 +1,12 @@
-- Bureaucrat didn't seem to report what I had to do. I guess that's really part of the logging.
 - Replace 'Player N' with email addresses.
 - Turn counter
+- Some kind of notifications. What frameworks are out there? Email is a little slow, but easy to implement.
+  - Is there any cross-platform notification system for iOS and Android devices? Anything that can be done without an app? Probably not.
+    - Well unless I can get free SMS. Which might be possible, with the magic email thing.
+  - Probably the best approach for that is to get a Dominion player familiar with developing apps for each platform to build one.
+    - Neil can do both.
+  - There's also browser urgency things like Gmail uses. I should look into that.
+- More to the point, I need it working on mobile devices first. I'll try with the office iPad and iPhone, and my own Android.
+  - Works great on iPad 3.2.1 and iPhone 3GS 4.1. No Flash support, no websockets support, falls back on xhr-polling and runs like a champ.
+  - Gotta either get the Flash part working, or disabled, before it'll work on Android.
+    - Should be disabled now.
