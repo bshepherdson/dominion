@@ -48,7 +48,7 @@ rules.plusCoin = function(amount) {
 /** @param {number} */
 rules.plusBuys = function(amount) {
 	return function(p,c) {
-		p.coin += amount;
+		p.buys += amount;
 		p.logMe('gains +' + amount + ' Buy' + (amount > 1 ? 's' : '') + '.');
 		c();
 	};
@@ -56,7 +56,7 @@ rules.plusBuys = function(amount) {
 /** @param {number} */
 rules.plusActions = function(amount) {
 	return function(p,c) {
-		p.coin += amount;
+		p.actions += amount;
 		p.logMe('gains +' + amount + ' Action' + (amount > 1 ? 's' : '') + '.');
 		c();
 	};
