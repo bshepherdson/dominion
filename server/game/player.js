@@ -210,6 +210,12 @@ dom.player.prototype.buyCard = function(index, free) {
 
 	this.logMe( (free ? 'gains' : 'buys') + ' ' + inKingdom.card.name + '.');
 
+	if(inKingdom.count == 1) {
+		this.game_.log('There is only one ' + inKingdom.card.name + ' remaining.');
+	} else if(inKingdom.count == 0) {
+		this.game_.log('The ' + inKingdom.card.name + ' pile is empty.');
+	}
+
 	if(!free) {
 		this.coin -= inKingdom.card.cost;
 		this.buys--;
