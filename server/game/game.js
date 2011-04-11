@@ -38,8 +38,15 @@ dom.game.prototype.decision = function(dec, cb) {
 		return true;
 	});
 
+	if (this.log_.length > 0) {
+		for(var i = 0; i < this.players.length; i++) {
+			this.players[i].client.send({ log: this.log_ });
+		}
+		this.log_ = [];
+	}
+
 	console.log('sending decision to player');
-	dec.player.client.send({ decision: dec.show(), log: this.log_ });
+	dec.player.client.send({ decision: dec.show() });
 };
 
 

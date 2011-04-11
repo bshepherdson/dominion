@@ -27,6 +27,7 @@
         else if ('whisper' in obj) putMessage('<b>' + esc(obj.whisper[0]) + ':</b> ' + esc(obj.whisper[1]), 'whisper');
 		else if ('decision' in obj) {
 			decision(obj.decision);
+		} else if ('log' in obj) {
 			log(obj.log);
 		} else if ('accept' in obj) {
 			$("#decision").html('<p>Decision accepted.</p>');
@@ -85,12 +86,13 @@
 	  }
 
 	  function log(log) {
-		  $("#log").html(log.map(function(x) { return '<p>' + x + '</p>'; }).join(''));
+		  $("#log").append(log.map(function(x) { return '<p class="newlog">' + x + '</p>'; }).join(''));
 		  $("#log").scrollTop(10000000);
 	  }
 
 	  function choice(index, key) {
 		  $("#choice" + index).addClass('clicked'); // lock it to green
+		  $(".newlog").removeClass('newlog');
 		  console.log('choice: ' + key);
 		  socket.send({ decision: key });
 	  }
@@ -169,8 +171,8 @@
     </script>
     
     <h1>Dominion</h1>
-	<div id="decision" class="hidden"></div>
 	<div id="log" class="hidden"></div>
+	<div id="decision" class="hidden"></div>
 	<div id="kingdom" class="hidden">
 		<h3>Kingdom</h3>
 		<div id="kingdomcontent"></div>
@@ -287,6 +289,9 @@
 		  margin: 0px;
 	  }
 
+	  .newlog {
+		  background-color: #aaffaa;
+	  }
 
     </style>
     
