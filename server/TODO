@@ -9,5 +9,4 @@
 - More to the point, I need it working on mobile devices first. I'll try with the office iPad and iPhone, and my own Android.
   - Works great on iPad 3.2.1 and iPhone 3GS 4.1. No Flash support, no websockets support, falls back on xhr-polling and runs like a champ.
   - Gotta either get the Flash part working, or disabled, before it'll work on Android.
-    - Should be disabled now.
-- Bureaucrat can be automatic if the victory cards someone has are all identical.
+    - Should be disabled now. Still not working on my Android.

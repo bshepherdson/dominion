@@ -340,7 +340,7 @@ dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 
 			p.logMe('reveals a hand with no Victory cards: ' + names.join(', '));
 			c();
 		} else if(victoryCards.length == 1) {
-			p.logMe('has only one Victory card, a ' + victoryCards[0].name + ', and is forced to put it on their deck.');
+			p.logMe('puts a ' + victoryCards[0].name + ' from their hand on top of their deck.');
 			for(var i = 0; i < p.hand_.length; i++) {
 				if(p.hand_[i].types['Victory']) {
 					var card = p.hand_[i];
@@ -351,17 +351,40 @@ dom.cards['Bureaucrat'] = new dom.card('Bureaucrat', { 'Action': 1, 'Attack': 1 
 			}
 			c();
 		} else {
-			// have to ask that player to decide which one to discard
-			console.log('Asking Player ' + p.id_ + ' for a decision.');
-			dom.utils.handDecision(p, 'Player ' + active.id_ + ' has played a Bureaucrat. Choose a Victory card from your hand to put on top of your deck.', null,
-				function(c) { return c.types['Victory']; },
-				function(index) {
-					var card = p.hand_[index];
-					p.logMe('chooses to put a ' + card.name + ' from their hand on top of their deck.');
-					p.removeFromHand(index);
-					p.deck_.push(card);
-					c();
-				}, c);
+			// check if there are actually different kinds of Victory cards. Only need to ask if there's variety.
+			var types = {};
+			var numTypes = 0;
+			for(var i = 0; i < victoryCards.length; i++) {
+				if(!types[victoryCards[i].name]) {
+					numTypes++;
+				}
+				types[victoryCards[i].name] = 1;
+			}
+
+			if(numTypes > 1) {
+				// have to ask that player to decide which one to discard
+				console.log('Asking Player ' + p.id_ + ' for a decision.');
+				dom.utils.handDecision(p, 'Player ' + active.id_ + ' has played a Bureaucrat. Choose a Victory card from your hand to put on top of your deck.', null,
+					function(c) { return c.types['Victory']; },
+					function(index) {
+						var card = p.hand_[index];
+						p.logMe('puts a ' + card.name + ' from their hand on top of their deck.');
+						p.removeFromHand(index);
+						p.deck_.push(card);
+						c();
+					}, c);
+			} else {
+				p.logMe('puts a ' + victoryCards[0].name + ' from their hand on top of their deck.');
+				for(var i = 0; i < p.hand_.length; i++) {
+					if(p.hand_[i].types['Victory']) {
+						var card = p.hand_[i];
+						p.removeFromHand(i);
+						p.deck_.push(card); // on top
+						break;
+					}
+				}
+				c();
+			}
 		}
 	})
 ]);

@@ -100,8 +100,10 @@ exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFu
  */
 exports.handDecision = function(p, message, done, cardPred, matchFunc, cont) {
 	var options = [];
+	var handNames = [];
 	for(var i = 0; i < p.hand_.length; i++) {
 		var card = p.hand_[i];
+		handNames.push(card.name);
 		if(cardPred(card)){
 			options.push(new dom.Option('card['+i+']', card.name));
 		}
@@ -109,7 +111,7 @@ exports.handDecision = function(p, message, done, cardPred, matchFunc, cont) {
 	if(done){
 		options.push(new dom.Option('done', done));
 	}
-	var dec = new dom.Decision(p, options, message, []);
+	var dec = new dom.Decision(p, options, message, ['Hand: ' + handNames.join(', ')]);
 
 	var repeat = function() {
 		p.game_.decision(dec, exports.decisionHelper(cont, matchFunc, repeat));
