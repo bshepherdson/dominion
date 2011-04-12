@@ -83,6 +83,19 @@
 		  str += '</ul>';
 
 		  $("#decision").html(str);
+
+		  if(!focused && window.webkitNotifications && window.webkitNotifications.checkPermission() == 0) {
+			  console.log('Trying to create a new notification');
+
+			  if(notification) {
+				  notification.cancel();
+		      }
+
+			  notification = window.webkitNotifications.createNotification('/notification.png', 'New Decision', 'Dominion needs your attention for a new decision.');
+			  if(notification) {
+				  notification.show();
+			  }
+		  }
 	  }
 
 	  function log(log) {
@@ -142,6 +155,8 @@
       };
       
 	  var socket;
+	  var focused = true;
+	  var notification;
 
 	  $(document).ready(function() {
 		  socket = new io.Socket(null, {port: 8080, rememberTransport: false});
@@ -167,6 +182,18 @@
 		  $("#startgame").click(function() {
 			  socket.send({ start_game: 1 });
 		  });
+
+		  if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0) {
+			  $(window).focus(function() {
+				  if(notification) {
+					  notification.cancel();
+				  }
+				  focused = true;
+			  });
+			  $(window).blur(function() {
+				  focused = false;
+			  });
+		  }
 	  });
     </script>
     

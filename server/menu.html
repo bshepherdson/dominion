@@ -1,5 +1,26 @@
 <html>
-<head><title>Dominion - Menu</title></head>
+<head><title>Dominion - Menu</title>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+$("document").ready(function() {
+	if(window.webkitNotifications) {
+		if(window.webkitNotifications.checkPermission() == 0) { // allowed
+			$("#notifications").html('<h3>Notifications</h3><p>Notifications are already enabled.</p>');
+		} else {
+			$("#notifications").html('<h3>Notifications</h3><p>Click the button below the enable notifications.</p><input id="notificationbutton" type="button" value="Enable Notifications" />');
+			$("#notificationbutton").click(function() {
+				window.webkitNotifications.requestPermission();
+			});
+		}
+	} else {
+		$("#notifications").html('<p>Your browser doesn\'t support fancy HTML5 notifications.');
+	}
+});
+
+</script>
+</head>
 <body>
 <h1>Menu</h1>
 
@@ -25,5 +46,7 @@
         <tr><td><input type="submit" value="Join Game" /></td></tr>
     </table>
 </form>
+
+<div id="notifications"></div>
 
 </body></html>
