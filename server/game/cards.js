@@ -782,6 +782,17 @@ dom.cards.victoryValues = {
 	'Province': 6
 };
 
+dom.cards.cardCount = function(card, players) {
+	if(card.types['Victory']) {
+		return players == 2 ? 8 : 12;
+	} else if(card.name == 'Curse') {
+		if(players == 2) return 10;
+		else if(players == 3) return 20;
+		else return 30;
+	}
+	return 10;
+};
+
 // converts cards to wire format (by removing the rules, basically)
 dom.cards.wireCards = function(cards) {
 	var ret = [];

@@ -56,17 +56,17 @@ dom.game.prototype.startGame = function() {
 	var cards = dom.cards.drawKingdom();
 	console.log('Kingdom:');
 	for(var i = 0; i < cards.length; i++) {
-		this.kingdom.push({ card: cards[i], count: 10 }); //TODO: Should be variable depending on number of players, etc.
+		this.kingdom.push({ card: cards[i], count: dom.cards.cardCount(cards[i], this.players.length) }); //TODO: Should be variable depending on number of players, etc.
 		console.log(cards[i].name + ', ' + cards[i].cost + ': ' + cards[i].text);
 	}
 
 	this.kingdom.push({ card: dom.cards['Copper'], count: 1000 });
 	this.kingdom.push({ card: dom.cards['Silver'], count: 1000 });
 	this.kingdom.push({ card: dom.cards['Gold'], count: 1000 });
-	this.kingdom.push({ card: dom.cards['Estate'], count: 24-3*this.players.length });
-	this.kingdom.push({ card: dom.cards['Duchy'], count: 12 });
-	this.kingdom.push({ card: dom.cards['Province'], count: 12 });
-	this.kingdom.push({ card: dom.cards['Curse'], count: 30 });
+	this.kingdom.push({ card: dom.cards['Estate'], count: dom.cards.cardCount(dom.cards['Estate'], this.players.length) });
+	this.kingdom.push({ card: dom.cards['Duchy'], count: dom.cards.cardCount(dom.cards['Duchy'], this.players.length) });
+	this.kingdom.push({ card: dom.cards['Province'], count: dom.cards.cardCount(dom.cards['Province'], this.players.length) });
+	this.kingdom.push({ card: dom.cards['Curse'], count: dom.cards.cardCount(dom.cards['Curse'], this.players.length) });
 
 	this.nextPlayer();
 };
