@@ -256,7 +256,19 @@ io.on('connection', function(client){
 	} else if('decision' in message) {
 		if(player.handlers.length > 0) {
 			var h = player.handlers[0];
-			if(h(player, message.decision)) {
+			if(!player.decisions[0]) { 
+				console.log('ERROR: decision doesn\'t exist');
+				process.exit(1);
+			}
+			if(player.decisions[0].id != h.id) {
+				console.log('ERROR: mismatch in decision IDs');
+				console.log(player.decisions);
+				console.log(player.handlers);
+				console.log('ERROR: mismatch in decision IDs');
+				process.exit(1);
+			}
+
+			if(h.f(player, message.decision)) {
 				player.handlers.shift();
                 player.decisions.shift();
                 console.log('Decision handled. ' + player.handlers.length + ', ' + player.decisions.length);

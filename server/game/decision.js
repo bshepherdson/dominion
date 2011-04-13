@@ -1,11 +1,15 @@
 
 var dom = {};
 
+var nextId = 0;
+
 dom.Decision = function(player, options, message, info) {
 	this.player = player;
 	this.options = options;
 	this.message = message;
 	this.info = info;
+
+	this.id = nextId++;
 };
 
 dom.Decision.prototype.show = function() {

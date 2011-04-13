@@ -30,13 +30,15 @@ dom.game.prototype.addPlayer = function(client, name) {
 
 dom.game.prototype.decision = function(dec, cb) {
 	dec.player.decisions.push(dec);
-	dec.player.handlers.push(function(p, key) {
-		if(!key) {
-			return false; // cause a retry
-		}
-		cb(key);
-		return true;
-	});
+	dec.player.handlers.push({ 
+		id: dec.id,
+		f: function(p, key) {
+			if(!key) {
+				return false; // cause a retry
+			}
+			cb(key);
+			return true;
+	}});
 
 	if (this.log_.length > 0) {
 		for(var i = 0; i < this.players.length; i++) {
