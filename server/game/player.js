@@ -37,6 +37,7 @@ dom.player = function(game, client, name) {
 	this.temp = {};
 	// used for the async rules handling
 	this.rules_ = [];
+	this.durationRules = [];
 };
 
 dom.player.TurnPhases = {
@@ -55,6 +56,11 @@ dom.player.prototype.turnStart = function() {
 	this.coin = 0;
 
 	this.logMe('starts turn.');
+
+	for(var i = 0; i < this.durationRules.length; i++) {
+		this.durationRules[i](this);
+	}
+	this.durationRules = [];
 
 	this.turnActionPhase();
 };

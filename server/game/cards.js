@@ -748,18 +748,48 @@ dom.cards['Embargo'] = new dom.card('Embargo', { 'Action': 1 }, 2, '+2 Coin. Tra
 ]);
 
 
-//1		Embargo			Seaside	Action				$2	+2 Coins, Trash this card. Put an Embargo token on top of a Supply pile. - When a player buys a card, he gains a Curse card per Embargo token on that pile.
-//2		Haven			Seaside	Action - Duration	$2	+1 Card, +1 Action, Set aside a card from your hand face down. At the start of your next turn, put it into your hand.
+dom.cards['Haven'] = new dom.card('Haven', { 'Action': 1, 'Duration': 1 }, 2, '+1 Card, +1 Action. Set aside a card from your hand face down. At the start of your next turn, put it into your hand.', [
+	rules.plusCards(1),
+	rules.plusActions(1),
+	function(p, c) {
+		if(p.hand_.length <= 0) {
+			p.logMe('has no cards left to set aside.');
+			c();
+			return;
+		}
+
+		dom.utils.handDecision(p, 'Choose a card from your hand to set aside for next turn.', null, dom.utils.const(true),
+			function(index) {
+				var card = p.hand_[index];
+				if(!p.temp['havenCards']) p.temp['havenCards'] = [];
+				p.temp['havenCards'].push(p.hand_[index]);
+				p.logMe('sets aside a card.');
+				c();
+			}, c);
+
+		p.durationRules.push(function(p) {
+			if(p.temp['havenCards'] && p.temp['havenCards'].length > 0) {
+				for(var i = 0; i < p.temp['havenCards'].length; i++) {
+					p.hand_.push(p.temp['havenCards'][i]);
+				}
+				p.logMe('draws ' + p.temp['havenCards'].length + ' card' + (p.temp['havenCards'].length > 1 ? 's' : '') + ' set aside with Haven.');
+				p.temp['havenCards'] = [];
+			}
+		});
+	}
+]);
+
+
 //3		Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
 //4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
 //5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Embargo'],
-		dom.cards['Embargo'],
-		dom.cards['Embargo'],
-		dom.cards['Embargo'],
+		dom.cards['Haven'],
+		dom.cards['Haven'],
+		dom.cards['Haven'],
+		dom.cards['Haven'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
