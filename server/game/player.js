@@ -219,6 +219,12 @@ dom.player.prototype.buyCard = function(index, free) {
 	if(!free) {
 		this.coin -= inKingdom.card.cost;
 		this.buys--;
+
+		if(inKingdom.embargoTokens && inKingdom.embargoTokens > 0) {
+			for(var i = 0; i < inKingdom.embargoTokens; i++) {
+				this.buyCard(this.game_.indexInKingdom('Curse'), true);
+			}
+		}
 	}
 };
 

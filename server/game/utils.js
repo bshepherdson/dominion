@@ -73,7 +73,9 @@ exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFu
 		var inKingdom = p.game_.kingdom[i];
 		var card = inKingdom.card;
 		if(inKingdom.count > 0 && cardPred(card)) {
-			options.push(new dom.Option('card['+i+']', '('+ card.cost +') ' + card.name));
+			options.push(new dom.Option('card['+i+']', '('+ card.cost +
+				(inKingdom.embargoTokens ? ', ' + inKingdom.embargoTokens + ' Embargo token' + (inKingdom.embargoTokens > 1 ? 's' : '')  : '') +
+				') ' + card.name));
 		}
 	}
 	options.push(new dom.Option('done', done));
@@ -122,4 +124,6 @@ exports.handDecision = function(p, message, done, cardPred, matchFunc, cont) {
 exports.const = function(x) {
 	return function(y) { return x; };
 };
+
+exports.nullFunction = function() { };
 

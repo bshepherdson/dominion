@@ -713,8 +713,53 @@ dom.cards['Adventurer'] = new dom.card('Adventurer', { 'Action': 1 }, 6, 'Reveal
 	}
 ]);
 
+
+// Seaside
+
+dom.cards['Embargo'] = new dom.card('Embargo', { 'Action': 1 }, 2, '+2 Coin. Trash this card. Put an Embargo token on top of a Supply pile. When a player buys a card, he gains a Curse card per Embargo token on that pile.', [
+	rules.plusCoin(2),
+	function(p,c) {
+		if(p.inPlay_.length > 0 && p.inPlay_[p.inPlay_.length-1].name == 'Embargo') {
+			p.inPlay_.pop(); // trash
+		}
+
+		var options = [];
+		for(var i = 0; i < p.game_.kingdom.length; i++) {
+			var inKingdom = p.game_.kingdom[i];
+			if(inKingdom.count > 0) {
+				options.push(new dom.Option('card[' + i + ']', inKingdom.card.name + 
+					(inKingdom.embargoTokens ? ' (' + inKingdom.embargoTokens + ' Embargo token' + (inKingdom.embargoTokens > 1 ? 's' : '') + ')' : '')));
+			}
+		}
+
+		var dec = new dom.Decision(p, options, 'Choose a Supply pile to place an Embargo token on.', []);
+		p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+			var inKingdom = p.game_.kingdom[index];
+			if(inKingdom.embargoTokens) {
+				inKingdom.embargoTokens++;
+			} else {
+				inKingdom.embargoTokens = 1;
+			}
+
+			p.logMe('Embargoes ' + inKingdom.card.name + '. Now ' + inKingdom.embargoTokens + ' Embargo token' + (inKingdom.embargoTokens > 1 ? 's' : '') + ' on that pile.');
+			c();
+		}, c));
+	}
+]);
+
+
+//1		Embargo			Seaside	Action				$2	+2 Coins, Trash this card. Put an Embargo token on top of a Supply pile. - When a player buys a card, he gains a Curse card per Embargo token on that pile.
+//2		Haven			Seaside	Action - Duration	$2	+1 Card, +1 Action, Set aside a card from your hand face down. At the start of your next turn, put it into your hand.
+//3		Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
+//4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
+//5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
+
 dom.cards.starterDeck = function() {
 	return [
+		dom.cards['Embargo'],
+		dom.cards['Embargo'],
+		dom.cards['Embargo'],
+		dom.cards['Embargo'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -830,6 +875,34 @@ dom.cards.wireCards = function(cards) {
 //23	*Mine			Base	Action				$5	Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coins more; put it into your hand.
 //24	*Witch			Base	Action - Attack		$5	+2 Cards, Each other player gains a Curse card.
 //25	*Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
+
+// Seaside
+//1		Embargo			Seaside	Action				$2	+2 Coins, Trash this card. Put an Embargo token on top of a Supply pile. - When a player buys a card, he gains a Curse card per Embargo token on that pile.
+//2		Haven			Seaside	Action - Duration	$2	+1 Card, +1 Action, Set aside a card from your hand face down. At the start of your next turn, put it into your hand.
+//3		Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
+//4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
+//5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
+//6		Ambassador		Seaside	Action				$3	Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
+//7		Fishing Village	Seaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
+//8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
+//9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
+//10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
+//11	Caravan			Seaside	Action - Duration	$4	+1 Card, +1 Action. At the start of your next turn, +1 Card.
+//12	Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
+//13	Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
+//14	Navigator		Seaside	Action				$4	+2 Coins, Look at the top 5 cards of your deck. Either discard all of them, or put them back on top of your deck in any order.
+//15	Pirate Ship		Seaside	Action - Attack		$4	Choose one: Each other player reveals the top 2 cards of his deck, trashes a revealed Treasure that you choose, discards the rest, and if anyone trashed a Treasure you take a Coin token; or, +1 Coin per Coin token you've taken with Pirate Ships this game.
+//16	Salvager		Seaside	Action				$4	+1 Buy, Trash a card from your hand. +Coins equal to its cost.
+//17	Sea Hag			Seaside	Action - Attack		$4	Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
+//18	Treasure Map	Seaside	Action				$4	Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.
+//19	Bazaar			Seaside	Action				$5	+1 Card, +2 Actions, +1 Coin.
+//20	Explorer		Seaside	Action				$5	You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.
+//21	Ghost Ship		Seaside	Action - Attack		$5	+2 Card, Each other player with 4 or more cards in hand puts cards from his hand on top of his deck until he has 3 cards in his hand.
+//22	Merchant Ship	Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Coins.
+//23	Outpost			Seaside	Action - Duration	$5	You only draw 3 cards (instead of 5) in this turn's Clean-up phase. Take an extra turn after this one. This can't cause you to take more than two consecutive turns.
+//24	Tactician		Seaside	Action - Duration	$5	Discard your hand. If you discarded any cards this way, then at the start of your next turn, +5 Cards, +1 Buy, and +1 Action.
+//25	Treasury		Seaside	Action				$5	+1 Card, +1 Action, +1 Coin, When you discard this from play, if you didn't buy a Victory card this turn, you may put this on top of your deck.
+//26	Wharf			Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Cards, +1 Buy.
 
 exports.cards = dom.cards;
 exports.card = dom.card;
