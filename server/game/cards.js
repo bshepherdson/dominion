@@ -1011,7 +1011,30 @@ dom.cards['Smugglers'] = new dom.card('Smugglers', { 'Action': 1 }, 3, 'Gain a c
 ]);
 		
 
-//10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
+dom.cards['Warehouse'] = new dom.card('Warehouse', { 'Action': 1 }, 3, '+3 Cards, +1 Action. Discard 3 cards.', [
+	rules.plusCards(3),
+	rules.plusActions(1),
+	function(p, c) {
+		var discard = function(count) {
+			if(count <= 0) {
+				c();
+				return;
+			}
+
+			dom.utils.handDecision(p, 'Choose a card to discard.', null, dom.utils.const(true), function(index) {
+				p.logMe('discards ' + p.hand_[index].name + '.');
+				p.removeFromHand(index);
+
+				discard(count-1);
+			}, c);
+		};
+
+		discard(3);
+	}
+]);
+
+
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
@@ -1136,11 +1159,11 @@ dom.cards.wireCards = function(cards) {
 //3		*Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
 //4		*Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
 //5		*Pearl Diver	Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
-//6		Ambassador		Seaside	Action - Attack		$3	Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
-//7		Fishing Village	Seaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
-//8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
-//9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
-//10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
+//6		*Ambassador		Seaside	Action - Attack		$3	Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
+//7		*Fishing VillageSeaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
+//8		*Lookout		Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
+//9		*Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
+//10	*Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
 //11	Caravan			Seaside	Action - Duration	$4	+1 Card, +1 Action. At the start of your next turn, +1 Card.
 //12	Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
 //13	Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
