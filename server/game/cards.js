@@ -219,6 +219,11 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 					return;
 				}
 
+				if(!includeMe && p.game_.players[index].id_ == p.id_) {
+					repeat(index+1);
+					return;
+				}
+
 				var savedBy = p.game_.players[index].safeFromAttack();
 				if(isAttack && savedBy) {
 					p.game_.players[index].logMe('is protected by ' + savedBy + '.');
@@ -858,6 +863,61 @@ dom.cards['Pearl Diver'] = new dom.card('Pearl Diver', { 'Action': 1 }, 2, '+1 C
 ]);
 
 
+dom.cards['Ambassador'] = new dom.card('Ambassador', { 'Action': 1, 'Attack': 1 }, 3, 'Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.', [
+	function(p, c) {
+		dom.utils.handDecision(p, 'Choose a card to reveal.', null, dom.utils.const(true),
+			function(index) {
+				var card = p.hand_[index];
+				p.logMe('reveals ' + card.name + '.');
+				var count = p.hand_.filter(function(c) { return c.name == card.name; }).length;
+				
+				var options = [
+					new dom.Option('0', 'None'),
+					new dom.Option('1', 'One') ];
+				if(count > 1) {
+					options.push(new dom.Option('2', 'Two'));
+				}
+
+				var kingdomIndex = p.game_.indexInKingdom(card.name);
+				var inKingdom = p.game_.kingdom[kingdomIndex];
+
+				var dec = new dom.Decision(p, options, 'Choose how many copies of ' + card.name + ' to return to the Supply pile.', []);
+				p.game_.decision(dec, function(key) {
+					var removed = 0;
+					console.log('result');
+					for(var i = 0; i < p.hand_.length && removed < key; i++) {
+						if(p.hand_[i].name == card.name) {
+							console.log('removing one');
+							p.removeFromHand(i);
+							inKingdom.count++;
+							removed++;
+						}
+					}
+					console.log('done');
+
+					var strs = {
+						0: 'no copies',
+						1: 'one copy',
+						2: 'two copies'
+					};
+					p.logMe('removes ' + strs[key] + ' of ' + card.name + ' from their hand.');
+
+					var f = rules.everyOtherPlayer(false, true, function(active, p, c) {
+						console.log('other player');
+						p.buyCard(kingdomIndex, true);
+						c();
+					});
+					f(p, c);
+				});
+			}, c);
+	}
+]);
+
+
+//7		Fishing Village	Seaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
+//8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
+//9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
+//10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
@@ -982,7 +1042,7 @@ dom.cards.wireCards = function(cards) {
 //3		*Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
 //4		*Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
 //5		*Pearl Diver	Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
-//6		Ambassador		Seaside	Action				$3	Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
+//6		Ambassador		Seaside	Action - Attack		$3	Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
 //7		Fishing Village	Seaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
 //8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 //9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
