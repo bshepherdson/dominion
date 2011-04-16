@@ -968,7 +968,49 @@ dom.cards['Lookout'] = new dom.card('Lookout', { 'Action': 1 }, 3, '+1 Action. L
 	}
 ]);
 
-//9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
+
+dom.cards['Smugglers'] = new dom.card('Smugglers', { 'Action': 1 }, 3, 'Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.', [
+	function(p, c) {
+		var index;
+		for(var i = 0; i < p.game_.players.length; i++) {
+			if(p.id_ == p.game_.players[i].id_) {
+				index = i;
+				break;
+			}
+		}
+
+		index--;
+		if(index < 0) {
+			index = p.game_.players.length - 1;
+		}
+
+		var other = p.game_.players[index];
+
+		var gained = other.temp['gainedLastTurn'];
+
+		gained = gained.unique(function(x,y) { return x.name == y.name; }).filter(function(c) { return c.cost <= 6; });
+
+		if(gained.length == 0) {
+			other.logMe('gained no valid cards last turn.');
+			c();
+			return;
+		}
+
+		var map = {};
+		for(var i = 0; i < gained.length; i++) {
+			map[gained[i].name] = p.game_.indexInKingdom(gained[i].name);
+		}
+
+		var options = gained.map(function(c) { return new dom.Option(c.name, c.name); });
+		var dec = new dom.Decision(p, options, 'Choose a card to gain from those that ' + other.name + ' gained last turn.', []);
+		p.game_.decision(dec, function(key) {
+			p.buyCard(map[key], true);
+			c();
+		});
+	}
+]);
+		
+
 //10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
 dom.cards.starterDeck = function() {
 	return [

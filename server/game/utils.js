@@ -127,3 +127,22 @@ exports.const = function(x) {
 
 exports.nullFunction = function() { };
 
+Array.prototype.unique = function(opt_cmp) {
+	var cmp = opt_cmp || function(x,y) {
+		return x == y;
+	};
+
+	var out = [];
+
+	outer: for(var i = 0; i < this.length; i++) {
+		for(var j = 0; j < out.length; j++) {
+			if(cmp(this[i], out[j])) {
+				continue outer;
+			}
+		}
+		out.push(this[i]);
+	}
+
+	return out;
+};
+

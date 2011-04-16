@@ -55,6 +55,7 @@ dom.player.prototype.turnStart = function() {
 	this.actions = 1;
 	this.buys = 1;
 	this.coin = 0;
+	this.temp['gainedLastTurn'] = [];
 
 	this.logMe('starts turn.');
 
@@ -223,6 +224,8 @@ dom.player.prototype.buyCard = function(index, free) {
 
 	this.discards_.push(inKingdom.card);
 	inKingdom.count--;
+
+	this.temp['gainedLastTurn'].push(inKingdom.card);
 
 	this.logMe( (free ? 'gains' : 'buys') + ' ' + inKingdom.card.name + '.');
 
