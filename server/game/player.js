@@ -362,17 +362,12 @@ dom.player.prototype.calculateScore = function() {
 
 // returns the name of the card that protected them
 dom.player.prototype.safeFromAttack = function() {
-	console.log('top of SFA');
-	console.log(this.duration_);
 	if (this.hand_.filter(function(c) { return c.name == 'Moat' }).length > 0) {
-		console.log('SFA: Moat');
 		return 'Moat';
 	}
 	if (this.duration_.filter(function(c) { return c.name == 'Lighthouse' }).length > 0) {
-		console.log('SFA: Lighthouse');
 		return 'Lighthouse';
 	}
-	console.log('SFA: undefined');
 	return /* undefined */;
 };
 
