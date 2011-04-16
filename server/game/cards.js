@@ -792,6 +792,45 @@ dom.cards['Lighthouse'] = new dom.card('Lighthouse', { 'Action': 1, 'Duration': 
 ]);
 
 
+dom.cards['Native Village'] = new dom.card('Native Village', { 'Action': 1 }, 2, '+2 Actions. Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.', [
+	rules.plusActions(2),
+	function(p, c) {
+		// first need to ask what the user wants to do
+		var options = [ new dom.Option('setaside', 'Set aside the top card of your deck on your Native Village mat.'),
+		                new dom.Option('intohand', 'Put all the cards on your Native Village mat into your hand.') ];
+
+		var dec = new dom.Decision(p, options, 'You have played Native Village. Choose which of its options to take.', []);
+		var repeat = function() {
+			p.game_.decision(dec, function(key) {
+				if(key == 'setaside') {
+					p.logMe('sets aside the top card of their deck.');
+					if(!p.temp['Native Village mat']) p.temp['Native Village mat'] = [];
+					p.draw(); // draws into hand, but deals with the shuffling
+					var card = p.hand_.pop();
+					p.client.send({ log: ['The top card was ' + card.name + '.' ]});
+					p.temp['Native Village mat'].push(card);
+					c();
+				} else if(key == 'intohand') {
+					var mat = p.temp['Native Village mat'];
+					p.logMe('puts the ' + mat.length + ' cards from their Native Village mat into their hand.');
+					for(var i = 0; i < mat.length; i++) {
+						p.hand_.push(mat[i]);
+					}
+
+					p.temp['Native Village mat'] = [];
+					c();
+				} else {
+					repeat();
+				}
+			});
+		};
+
+		repeat();
+	}
+]);
+
+
+
 
 //4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
 //5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.

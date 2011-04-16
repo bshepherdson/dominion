@@ -9,6 +9,10 @@ dom.Decision = function(player, options, message, info) {
 	this.message = message;
 	this.info = info;
 
+	if(player.temp['Native Village mat'] && player.temp['Native Village mat'].length > 0) {
+		this.info.push('Native Village mat: ' + player.temp['Native Village mat'].map(function(c) { return c.name; }).join(', ') );
+	}
+
 	this.id = nextId++;
 };
 
