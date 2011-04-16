@@ -205,6 +205,11 @@ dom.player.prototype.turnBuyPhase = function() {
  */
 dom.player.prototype.buyCard = function(index, free) {
 	var inKingdom = this.game_.kingdom[index];
+	if(inKingdom.count <= 0) {
+		this.logMe('fails to ' + (free ? 'gain' : 'buy') + ' ' + inKingdom.card.name + ' because the Supply pile is empty.');
+		return;
+	}
+
 	this.discards_.push(inKingdom.card);
 	inKingdom.count--;
 
