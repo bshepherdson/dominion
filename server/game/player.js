@@ -286,18 +286,21 @@ dom.player.prototype.turnEnd = function() {
 /** @param {?number} optional number of cards */
 dom.player.prototype.draw = function(opt_n) {
 	var n = opt_n || 1;
+	var drawn = 0;
 	for(var i = 0; i < n; i++) {
 		if(this.deck_.length == 0) {
 			this.shuffleDiscards_();
 		}
 
 		if(this.deck_.length == 0) {
-			return /* undefined */; // nothing to draw. rare but possible case.
+			return drawn; // nothing to draw. rare but possible case.
 		}
 
 		var card = this.deck_.pop();
 		this.hand_.push(card);
+		drawn++;
 	}
+	return drawn;
 };
 
 

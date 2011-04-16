@@ -922,7 +922,52 @@ dom.cards['Fishing Village'] = new dom.card('Fishing Village', { 'Action': 1, 'D
 		c();
 	}
 ]);
-//8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
+
+
+dom.cards['Lookout'] = new dom.card('Lookout', { 'Action': 1 }, 3, '+1 Action. Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.', [
+	rules.plusActions(1),
+	function(p,c) {
+		// abuse draw() again
+		var drawn = p.draw(3);
+		var cards = [];
+		for(var i = 0; i < drawn; i++) {
+			cards.push(p.hand_.pop());
+		}
+
+		var options = dom.utils.cardsToOptions(cards);
+		var dec = new dom.Decision(p, options, 'You have played Lookout. You must choose one card to trash, one to discard, and one to put back on your deck. Choose first the card to trash.', []);
+		p.game_.decision(dec, dom.utils.decisionHelper(c, function(index) {
+			p.logMe('trashes ' + cards[index].name + '.');
+			var cards2 = [];
+			for(var i = 0; i < cards.length; i++) {
+				if(i != index) {
+					cards2.push(cards[i]);
+				}
+			}
+
+			if(cards2.length == 0) {
+				p.logMe('has no cards remaining for Lookout.');
+				c();
+				return;
+			}
+
+			var options = dom.utils.cardsToOptions(cards2);
+			var dec = new dom.Decision(p, options, 'You must now choose a card to discard.', []);
+			p.game_.decision(dec, dom.utils.decisionHelper(c, function(index) {
+				p.logMe('discards ' + cards2[index].name + '.');
+				p.discards_.push(cards2[index]);
+
+				if(cards2.length > 1) {
+					var deckIndex = index == 1 ? 0 : 1;
+					p.deck_.push(cards2[deckIndex]);
+				}
+
+				c();
+			}, c));
+		}, c));
+	}
+]);
+
 //9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
 //10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
 dom.cards.starterDeck = function() {
