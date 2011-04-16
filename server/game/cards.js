@@ -830,10 +830,33 @@ dom.cards['Native Village'] = new dom.card('Native Village', { 'Action': 1 }, 2,
 ]);
 
 
+dom.cards['Pearl Diver'] = new dom.card('Pearl Diver', { 'Action': 1 }, 2, '+1 Card, +1 Action. Look at the bottom card of your deck. You may put it on top.', [
+	rules.plusCards(1),
+	rules.plusActions(1),
+	function(p, c) {
+		if(p.deck_.length <= 0) {
+			p.shuffleDiscards();
+		}
 
+		if(p.deck_.length <= 0) {
+			p.logMe('has no deck to look at.');
+			c();
+			return;
+		}
 
-//4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
-//5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
+		var yn = rules.yesNo('The bottom card of your deck was ' + p.deck_[0].name + '. Place it on top of your deck?',
+			function(p) {
+				p.deck_.push(p.deck_.shift());
+				p.logMe('puts the bottom card of his deck on top.');
+			}, function(p) {
+				p.logMe('leaves the bottom card of his deck on the bottom.');
+			}
+		);
+
+		yn(p,c);
+	}
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
@@ -954,11 +977,11 @@ dom.cards.wireCards = function(cards) {
 //25	*Adventurer		Base	Action				$6	Reveal cards from your deck until you reveal 2 Treasure cards. Put those Treasure cards in your hand and discard the other revealed cards.
 
 // Seaside
-//1		Embargo			Seaside	Action				$2	+2 Coins, Trash this card. Put an Embargo token on top of a Supply pile. - When a player buys a card, he gains a Curse card per Embargo token on that pile.
-//2		Haven			Seaside	Action - Duration	$2	+1 Card, +1 Action, Set aside a card from your hand face down. At the start of your next turn, put it into your hand.
-//3		Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
-//4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
-//5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
+//1		*Embargo		Seaside	Action				$2	+2 Coins, Trash this card. Put an Embargo token on top of a Supply pile. - When a player buys a card, he gains a Curse card per Embargo token on that pile.
+//2		*Haven			Seaside	Action - Duration	$2	+1 Card, +1 Action, Set aside a card from your hand face down. At the start of your next turn, put it into your hand.
+//3		*Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
+//4		*Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
+//5		*Pearl Diver	Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
 //6		Ambassador		Seaside	Action				$3	Reveal a card from your hand. Return up to 2 copies of it from your hand to the Supply. Then each other player gains a copy of it.
 //7		Fishing Village	Seaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
 //8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
