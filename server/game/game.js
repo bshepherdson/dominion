@@ -81,7 +81,7 @@ dom.game.prototype.stackSizes = function() {
 	var ret = [];
 	for(var i = 0; i < this.players.length; i++){
 		var p = this.players[i];
-		ret.push({ id: p.id_, deck: p.deck_.length, hand: p.hand_.length, discards: p.discards_.length });
+		ret.push({ id: p.id_, deck: p.deck_.length, hand: p.hand_.length, discards: p.discards_.length, duration: p.duration_.length });
 	}
 	return ret;
 }

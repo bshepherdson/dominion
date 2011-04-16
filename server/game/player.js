@@ -17,6 +17,7 @@ dom.player = function(game, client, name) {
 	this.discards_ = dom.cards.starterDeck(); // start them in the discards
 	this.deck_ = [];                          // and an empty deck
 	this.inPlay_ = [];
+	this.duration_ = [];
 
 	this.shuffleDiscards_();                  // shuffle them into the deck
 	this.hand_ = [];
@@ -58,7 +59,11 @@ dom.player.prototype.turnStart = function() {
 	this.logMe('starts turn.');
 
 	for(var i = 0; i < this.durationRules.length; i++) {
-		this.durationRules[i](this);
+		var d = this.durationRules[i];
+		this.logMe('gets the delayed effect of ' + d.name + '.');
+		for(var j = 0; j < d.rules.length; j++) {
+			d.rules[j](this);
+		}
 	}
 	this.durationRules = [];
 
@@ -237,9 +242,23 @@ dom.player.prototype.buyCard = function(index, free) {
 
 dom.player.prototype.turnCleanupPhase = function() {
 	this.phase_ = dom.player.TurnPhases.CLEANUP;
-	for(var i = 0; i < this.inPlay_.length; i++) {
-		this.discards_.push(this.inPlay_[i]);
+	
+	// move old Duration cards to discard pile
+	for(var i = 0; i < this.duration_.length; i++) {
+		this.discards_.push(this.duration_[i]);
 	}
+	this.duration_ = [];
+	// then move cards in play into duration or discards
+	for(var i = 0; i < this.inPlay_.length; i++) {
+		if(this.inPlay_[i].types['Duration']) {
+			this.duration_.push(this.inPlay_[i]);
+		} else {
+			this.discards_.push(this.inPlay_[i]);
+		}
+	}
+	console.log('Durations');
+	console.log(this.duration_);
+	// and the hand to the discards
 	for(var i = 0; i < this.hand_.length; i++) {
 		this.discards_.push(this.hand_[i]);
 	}
@@ -252,7 +271,7 @@ dom.player.prototype.turnCleanupPhase = function() {
 
 
 dom.player.prototype.turnEnd = function() {
-	console.log(this);
+	//console.log(this);
 	this.logMe(' ends turn.');
 	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
 	this.game_.nextPlayer();
@@ -336,8 +355,20 @@ dom.player.prototype.calculateScore = function() {
 };
 
 
+// returns the name of the card that protected them
 dom.player.prototype.safeFromAttack = function() {
-	return this.hand_.filter(function(c) { return c.name == 'Moat' }).length > 0;
+	console.log('top of SFA');
+	console.log(this.duration_);
+	if (this.hand_.filter(function(c) { return c.name == 'Moat' }).length > 0) {
+		console.log('SFA: Moat');
+		return 'Moat';
+	}
+	if (this.duration_.filter(function(c) { return c.name == 'Lighthouse' }).length > 0) {
+		console.log('SFA: Lighthouse');
+		return 'Lighthouse';
+	}
+	console.log('SFA: undefined');
+	return /* undefined */;
 };
 
 // logs a message that begins with my name

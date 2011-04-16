@@ -42,7 +42,7 @@ rules.plusCoin = function(amount) {
 	return function(p,c) {
 		p.coin += amount;
 		p.logMe('gains +' + amount + ' Coin.');
-		c();
+		if(c) c();
 	};
 };
 /** @param {number} */
@@ -50,7 +50,7 @@ rules.plusBuys = function(amount) {
 	return function(p,c) {
 		p.buys += amount;
 		p.logMe('gains +' + amount + ' Buy' + (amount > 1 ? 's' : '') + '.');
-		c();
+		if(c) c();
 	};
 };
 /** @param {number} */
@@ -58,7 +58,7 @@ rules.plusActions = function(amount) {
 	return function(p,c) {
 		p.actions += amount;
 		p.logMe('gains +' + amount + ' Action' + (amount > 1 ? 's' : '') + '.');
-		c();
+		if(c) c();
 	};
 };
 /** @param {number} */
@@ -68,7 +68,7 @@ rules.plusCards = function(amount) {
 			p.draw();
 		}
 		p.logMe('draws ' + amount + ' card' + (amount > 1 ? 's' : '') + '.');
-		c();
+		if(c) c();
 	};
 };
 rules.nullRule = function(p, c) { c(); };
@@ -193,13 +193,14 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 			};
 
 			for(var i = 0; i < p.game_.players.length; i++) {
+				var savedBy = p.game_.players[i].safeFromAttack();
 				if((includeMe && p.id_ == p.game_.players[i].id_)
 				|| (p.id_ != p.game_.players[i].id_ && 
-					 (!isAttack || !p.safeFromAttack()))){
+					 (!isAttack || !savedBy))){
 					sent++;
 					f(p, p.game_.players[i], cont);
-				} else if(isAttack && p.safeFromAttack()) {
-					p.logMe('is protected by Moat.');
+				} else if(isAttack && savedBy) {
+					p.game_.players[i].logMe('is protected by ' + savedBy + '.');
 				}
 			}
 
@@ -218,8 +219,9 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 					return;
 				}
 
-				if(isAttack && p.safeFromAttack()) {
-					p.logMe('is protected by Moat.');
+				var savedBy = p.game_.players[index].safeFromAttack();
+				if(isAttack && savedBy) {
+					p.game_.players[index].logMe('is protected by ' + savedBy + '.');
 				} else {
 					f(p, p.game_.players[index], function() {
 						repeat(index+1);
@@ -767,7 +769,7 @@ dom.cards['Haven'] = new dom.card('Haven', { 'Action': 1, 'Duration': 1 }, 2, '+
 				c();
 			}, c);
 
-		p.durationRules.push(function(p) {
+		p.durationRules.push({ name: 'Haven', rules: [ function(p) {
 			if(p.temp['havenCards'] && p.temp['havenCards'].length > 0) {
 				for(var i = 0; i < p.temp['havenCards'].length; i++) {
 					p.hand_.push(p.temp['havenCards'][i]);
@@ -775,21 +777,27 @@ dom.cards['Haven'] = new dom.card('Haven', { 'Action': 1, 'Duration': 1 }, 2, '+
 				p.logMe('draws ' + p.temp['havenCards'].length + ' card' + (p.temp['havenCards'].length > 1 ? 's' : '') + ' set aside with Haven.');
 				p.temp['havenCards'] = [];
 			}
-		});
+		} ]});
 	}
 ]);
 
 
-//3		Lighthouse		Seaside	Action - Duration	$2	+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn't affect you.
+dom.cards['Lighthouse'] = new dom.card('Lighthouse', { 'Action': 1, 'Duration': 1 }, 2, '+1 Action, Now and at the start of your next turn: +1 Coin. - While this is in play, when another player plays an Attack card, it doesn\'t affect you.', [
+	rules.plusActions(1),
+	rules.plusCoin(1),
+	function(p, c) {
+		p.durationRules.push({ name: 'Lighthouse', rules: [ rules.plusCoin(1) ]});
+		c();
+	}
+]);
+
+
+
 //4		Native Village	Seaside	Action				$2	+2 Actions, Choose one: Set aside the top card of your deck face down on your Native Village mat; or put all the cards from your mat into your hand. You may look at the cards on your mat at any time; return them to your deck at the end of the game.
 //5		Pearl Diver		Seaside	Action				$2	+1 Card, +1 Action, Look at the bottom card of your deck. You may put it on top.
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Haven'],
-		dom.cards['Haven'],
-		dom.cards['Haven'],
-		dom.cards['Haven'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
