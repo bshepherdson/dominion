@@ -914,7 +914,14 @@ dom.cards['Ambassador'] = new dom.card('Ambassador', { 'Action': 1, 'Attack': 1 
 ]);
 
 
-//7		Fishing Village	Seaside	Action - Duration	$3	+2 Actions, +1 Coin, At the start of your next turn: +1 Action, +1 Coin.
+dom.cards['Fishing Village'] = new dom.card('Fishing Village', { 'Action': 1, 'Duration': 1 }, 3, '+2 Actions, +1 Coin. At the start of your next turn: +1 Action, +1 Coin.', [
+	rules.plusActions(2),
+	rules.plusCoin(1),
+	function(p, c) {
+		p.durationRules.push({ name: 'Fishing Village', rules: [ rules.plusActions(1), rules.plusCoin(1) ] });
+		c();
+	}
+]);
 //8		Lookout			Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 //9		Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
 //10	Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
