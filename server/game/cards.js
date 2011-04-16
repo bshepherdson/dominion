@@ -683,7 +683,7 @@ dom.cards['Market'] = new dom.card('Market', { 'Action': 1 }, 5, '+1 Card, +1 Ac
 dom.cards['Witch'] = new dom.card('Witch', { 'Action': 1, 'Attack': 1 }, 5, '+2 Cards. Each other player gains a Curse card.', [
 	rules.plusCards(2),
 	rules.everyOtherPlayer(true, true, function(active, p, c) {
-		p.buyCard(p.game_.indexInKingdom('Curse'), false); // NOT free, that will cost 0 and deplete the stack by 1.
+		p.buyCard(p.game_.indexInKingdom('Curse'), true);
 		c();
 	})
 ]);
