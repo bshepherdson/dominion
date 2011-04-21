@@ -1034,6 +1034,19 @@ dom.cards['Warehouse'] = new dom.card('Warehouse', { 'Action': 1 }, 3, '+3 Cards
 ]);
 
 
+dom.cards['Caravan'] = new dom.card('Caravan', { 'Action': 1, 'Duration': 1 }, 4, '+1 Card, +1 Action. At the start of your next turn, +1 Card.', [
+	rules.plusCards(1),
+	rules.plusActions(1),
+	function(p,c) {
+		p.durationRules.push({ name: 'Caravan', rules: [ rules.plusCards(1) ] });
+		c();
+	}
+]);
+
+//11	Caravan			Seaside	Action - Duration	$4	+1 Card, +1 Action. At the start of your next turn, +1 Card.
+//12	Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
+//13	Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
+
 
 dom.cards.starterDeck = function() {
 	return [
