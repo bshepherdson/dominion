@@ -1043,7 +1043,26 @@ dom.cards['Caravan'] = new dom.card('Caravan', { 'Action': 1, 'Duration': 1 }, 4
 	}
 ]);
 
-//11	Caravan			Seaside	Action - Duration	$4	+1 Card, +1 Action. At the start of your next turn, +1 Card.
+
+dom.cards['Cutpurse'] = new dom.card('Cutpurse', { 'Action': 1, 'Attack': 1 }, 4, '+2 Coin. Each other player discards a Copper card (or reveals a hand with no Copper).', [
+	rules.plusCoin(2),
+	rules.everyOtherPlayer(true, true, function(active, p, c) {
+		var coppers = p.hand_.filter(function(c) { return c.name == 'Copper'; });
+		if(coppers.length > 0) {
+			p.logMe('discards a Copper.');
+			for(var i = 0; i < p.hand_.length; i++) {
+				if(p.hand_[i].name == 'Copper') {
+					p.removeFromHand(i);
+					break;
+				}
+			}
+		} else {
+			p.logMe('reveals a hand with no Copper: ' + p.hand_.map(function(c) { return c.name; }).join(', '));
+		}
+		c();
+	})
+]);
+
 //12	Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
 //13	Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
 
