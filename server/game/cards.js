@@ -1063,8 +1063,29 @@ dom.cards['Cutpurse'] = new dom.card('Cutpurse', { 'Action': 1, 'Attack': 1 }, 4
 	})
 ]);
 
-//12	Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
-//13	Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
+
+dom.cards['Island'] = new dom.card('Island', { 'Action': 1, 'Victory': 1 }, 4, 'Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.', [
+	function(p, c) {
+		dom.utils.handDecision(p, 'Choose a card to set aside until the end of the game.', null, dom.utils.const(true),
+			function(index) {
+				var card = p.hand_[index];
+				p.removeFromHand(index);
+				if(!p.temp.islandSetAside) p.temp.islandSetAside = [];
+				p.temp.islandSetAside.push(card);
+
+				// and the Island too, if it wasn't Throme Room'd or whatever.
+				if(p.inPlay_.length > 0 && p.inPlay_[p.inPlay_.length-1].name != 'Island') {
+					p.temp.islandSetAside.push(p.inPlay_.pop());
+				}
+
+				p.logMe('sets aside Island and another card.');
+				c();
+			}, c);
+	}
+]);
+
+
+
 
 
 dom.cards.starterDeck = function() {
@@ -1133,7 +1154,8 @@ dom.cards.treasureValues = {
 dom.cards.victoryValues = {
 	'Estate': 1,
 	'Duchy': 3,
-	'Province': 6
+	'Province': 6,
+	'Island': 2
 };
 
 dom.cards.cardCount = function(card, players) {

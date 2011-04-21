@@ -357,6 +357,7 @@ dom.player.prototype.calculateScore = function() {
 	scoreArray(this.hand_);
 	scoreArray(this.deck_);
 	scoreArray(this.discards_);
+	scoreArray(this.temp.islandSetAside);
 
 	score += gardens * Math.floor(cards/10);
 
