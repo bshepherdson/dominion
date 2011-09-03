@@ -1258,12 +1258,46 @@ dom.cards['Sea Hag'] = new dom.card('Sea Hag', { 'Action': 1, 'Attack': 1 }, 4, 
     })
 ]);
 
-//17	Sea Hag			Seaside	Action - Attack		$4	Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
-//18	Treasure Map	Seaside	Action				$4	Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.
+
+dom.cards['Treasure Map'] = new dom.card('Treasure Map', { 'Action': 1 }, 4, 'Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.', [
+    function(p, c) {
+        var another = false;
+        var newhand = [];
+        for(var i = 0; i < p.hand_.length; i++) {
+            if(p.hand_[i].name == 'Treasure Map') {
+                another = true;
+            } else {
+                newhand.push(p.hand_[i]);
+            }
+        }
+        p.hand_ = newhand;
+
+        var newInPlay = [];
+        for(var i = 0; i < p.inPlay_.length; i++){
+            if(p.inPlay_[i].name != 'Treasure Map') {
+                newInPlay.push(p.inPlay_[i]);
+            }
+        }
+        p.inPlay_ = newInPlay;
+
+        if(another) {
+            p.logMe('trashes two Treasure Maps, putting 4 Gold on top of his deck.');
+            for(var i = 0; i < 4; i++) {
+                p.deck_.push(dom.cards['Gold']);
+            }
+        }
+
+        c();
+    }
+]);
+
+
 
 dom.cards.starterDeck = function() {
 	return [
-        dom.cards['Sea Hag'],
+        dom.cards['Treasure Map'],
+        dom.cards['Treasure Map'],
+        dom.cards['Treasure Map'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
