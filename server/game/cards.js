@@ -1211,11 +1211,31 @@ dom.cards['Pirate Ship'] = new dom.card('Pirate Ship', { 'Action': 1, 'Attack': 
 ]);
 
 
-//16	Salvager		Seaside	Action				$4	+1 Buy, Trash a card from your hand. +Coins equal to its cost.
+dom.cards['Salvager'] = new dom.card('Salvager', { 'Action': 1 }, 4, '+1 Buy, Trash a card from your hand. +Coins equal to its cost.', [
+    rules.plusBuys(1),
+    function(p, c) {
+        var opts = dom.utils.cardsToOptions(p.hand_);
+        var dec = new dom.Decision(p, opts, 'Choose a card to trash. You will gain +Coins equal to its cost.', []);
+        p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+            var trashed = p.hand_[index];
+            var cards = [];
+            for(var i = 0; i < p.hand_.length; i++) {
+                if(i != index) {
+                    cards.push(p.hand_[i]);
+                }
+            }
+            p.hand_ = cards;
+            p.logMe('trashes ' + trashed.name + ', gaining +' + trashed.cost + ' Coins.');
+            p.coin += trashed.cost;
+            c();
+        }, c));
+    }
+]);
 
 
 dom.cards.starterDeck = function() {
 	return [
+        dom.cards['Salvager'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
