@@ -1233,9 +1233,37 @@ dom.cards['Salvager'] = new dom.card('Salvager', { 'Action': 1 }, 4, '+1 Buy, Tr
 ]);
 
 
+dom.cards['Sea Hag'] = new dom.card('Sea Hag', { 'Action': 1, 'Attack': 1 }, 4, 'Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.', [
+    rules.everyOtherPlayer(false, true, function(p, o, c) {
+        var iCurse = p.game_.indexInKingdom('Curse');
+
+        var log;
+        var drawn = o.draw();
+        if(!drawn) {
+            log = 'has no top card to discard, ';
+        } else {
+            var discarded = o.hand_.pop();
+            o.discards_.push(discarded);
+            log = 'discards the top card of his deck (' + discarded.name + '), ';
+        }
+
+        if(p.game_.kingdom[iCurse].count > 0) {
+            o.deck_.push(dom.cards['Curse']);
+            o.game_.kingdom[iCurse].count--;
+            o.logMe(log + 'putting a Curse on top of his deck.');
+        } else {
+            o.logMe(log + 'but there are no more Curses.');
+        }
+        c();
+    })
+]);
+
+//17	Sea Hag			Seaside	Action - Attack		$4	Each other player discards the top card of his deck, then gains a Curse card, putting it on top of his deck.
+//18	Treasure Map	Seaside	Action				$4	Trash this and another copy of Treasure Map from your hand. If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck.
+
 dom.cards.starterDeck = function() {
 	return [
-        dom.cards['Salvager'],
+        dom.cards['Sea Hag'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -1380,6 +1408,7 @@ dom.cards.wireCards = function(cards) {
 //24	Tactician		Seaside	Action - Duration	$5	Discard your hand. If you discarded any cards this way, then at the start of your next turn, +5 Cards, +1 Buy, and +1 Action.
 //25	Treasury		Seaside	Action				$5	+1 Card, +1 Action, +1 Coin, When you discard this from play, if you didn't buy a Victory card this turn, you may put this on top of your deck.
 //26	Wharf			Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Cards, +1 Buy.
+
 
 exports.cards = dom.cards;
 exports.card = dom.card;
