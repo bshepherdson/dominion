@@ -56,7 +56,7 @@ dom.game.prototype.startGame = function() {
 	var cards = dom.cards.drawKingdom();
 	console.log('Kingdom:');
 	for(var i = 0; i < cards.length; i++) {
-		this.kingdom.push({ card: cards[i], dom.cards.cardCount(cards[i], this.players.length) });
+		this.kingdom.push({ card: cards[i], count: dom.cards.cardCount(cards[i], this.players.length) });
 		console.log(cards[i].name + ', ' + cards[i].cost + ': ' + cards[i].text);
 	}
 

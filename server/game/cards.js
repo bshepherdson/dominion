@@ -174,6 +174,8 @@ rules.maybe = function(pred, when) {
 	};
 };
 
+// f has type (player whose turn it is, target player, continuation)
+
 rules.everyOtherPlayer = function(inParallel, isAttack, f) {
 	return rules.everyPlayer(false, inParallel, isAttack, f);
 };
@@ -1085,7 +1087,131 @@ dom.cards['Island'] = new dom.card('Island', { 'Action': 1, 'Victory': 1 }, 4, '
 ]);
 
 
+dom.cards['Navigator'] = new dom.card('Navigator', { 'Action': 1 }, 4, '+2 Coin. Look at the top 5 cards of your deck. Either discard all of them, or put them back on top of your deck in any order.', [
+	rules.plusCoin(2),
+	function(p, c) {
+		var drawn = p.draw(5);
+		var cards = [];
+		for(var i = 0; i < drawn; i++) {
+			cards.push(p.hand_.pop());
+		}
 
+		var opts = [ new dom.Option('discard', 'Discard them all'), new dom.Option('keep', 'Put them back in any order') ];
+		var dec = new dom.Decision(p, opts, 'Choose whether to discard or put back the cards below.', [cards.map(function(c) { return c.name; }).join(', ')]);
+		var repeat = function() {
+			p.game_.decision(dec, function(key) {
+				if(key == 'discard') {
+					for(var i = 0; i < cards.length; i++) {
+						p.discards_.push(cards[i]);
+					}
+					c();
+				} else if(key == 'keep') {
+					var putBack = function(time, cards) {
+						if(cards.length == 0) {
+							c();
+							return;
+						}
+
+						var opts = dom.utils.cardsToOptions(cards);
+						var dec = new dom.Decision(p, opts, 'Choose the card to draw ' + (time == 1 ? 'first' : 'next') + '.', []);
+						p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                            p.deck_.push(cards[index]);
+                            var newcards = [];
+                            for(var i = 0; i < cards.length; i++) {
+                                if(i != index) {
+                                    newcards.push(cards[i]);
+                                }
+                            }
+                            putBack(time+1, newcards);
+                        }, function() { c(); }));
+                    };
+
+                    putBack(1, cards);
+                }
+            });
+        };
+
+        repeat();
+    }]);
+
+
+dom.cards['Pirate Ship'] = new dom.card('Pirate Ship', { 'Action': 1, 'Attack': 1 }, 4, 'Choose one: Each other player reveals the top 2 cards of his deck, trashes a revealed Treasure that you choose, discards the rest, and if anyone trashed a Treasure you take a Coin token; or, +1 Coin per Coin token you\'ve taken with Pirate Ships this game.', [
+	function(p, c) {
+        if(!p.temp['Pirate Ship coins']) {
+            p.temp['Pirate Ship coins'] = 0;
+        }
+        p.temp['Pirate Ship attack'] = 0;
+
+        console.log(p);
+        console.log('Top of Pirate Ship');
+
+        var opts = [new dom.Option('attack', 'Attack the other players'), new dom.Option('coin', 'Gain ' + p.temp['Pirate Ship coins'] + ' Coin')];
+        var dec = new dom.Decision(p, opts, 'Choose what to do with your Pirate Ship.', []);
+        p.game_.decision(dec, function(key) {
+            if(key == 'coin') {
+                rules.plusCoin(p.temp['Pirate Ship coins'])(p,c);
+            } else {
+                var rule = rules.everyOtherPlayer(true, true, function(p, o, c) {
+                    var drawn = o.draw(2);
+                    if(!drawn) {
+                        o.logMe('has no cards to draw.');
+                        c();
+                    }
+
+                    var cards = [];
+                    for(var i = 0; i < drawn; i++) {
+                        cards.push(o.hand_.pop());
+                    }
+
+                    var treasure = cards.filter(function(x) { return x.types['Treasure']; });
+
+                    var log = 'reveals ' + cards[0].name + (cards.length > 1 ? ' and ' + cards[1].name : '') + ', ';
+                    
+                    if(treasure.length == 0) {
+                        o.logMe(log + 'discarding ' + (cards.length > 1 ? 'both' : 'it') + '.');
+                        cards.map(o.discards_.push);
+                        c();
+                    } else if(treasure.length == 1) {
+                        if(cards.length == 1) {
+                            o.logMe(log + 'trashing it.');
+                            p.temp['Pirate Ship attack']++;
+                            c();
+                        } else {
+                            for(var i = 0; i < cards.length; i++) {
+                                if(cards[i] != treasure[0]) {
+                                    o.discards_.push(cards[i]);
+                                    log += 'trashing the ' + treasure[0].name + ' and discarding the ' + cards[i].name + '.';
+                                    p.temp['Pirate Ship attack']++;
+                                }
+                            }
+                            o.logMe(log);
+                            c();
+                        }
+                    } else {
+                        var opts = dom.utils.cardsToOptions(cards);
+                        var dec = new dom.Decision(p, opts, 'Choose which of ' + o.name + '\'s Treasures to trash', []);
+                        p.game_.decision(dec, dom.utils.decisionHelper(o, function(index) {
+                            p.logMe('trashes ' + o.name + '\'s ' + cards[index].name + '.');
+                            o.discards_.push(cards[1-index]);
+                            p.temp['Pirate Ship attack']++;
+                            c();
+                        }, c));
+                    }
+                });
+                rule(p, function() {
+                    if(p.temp['Pirate Ship attack'] > 0) {
+                        p.temp['Pirate Ship coins']++;
+                        p.logMe('gains a Pirate Ship token.');
+                    }
+                    c();
+                });
+            }
+        });
+    }
+]);
+
+
+//16	Salvager		Seaside	Action				$4	+1 Buy, Trash a card from your hand. +Coins equal to its cost.
 
 
 dom.cards.starterDeck = function() {
@@ -1218,9 +1344,9 @@ dom.cards.wireCards = function(cards) {
 //8		*Lookout		Seaside	Action				$3	+1 Action, Look at the top 3 cards of your deck. Trash one of them. Discard one of them. Put the other one on top of your deck.
 //9		*Smugglers		Seaside	Action				$3	Gain a copy of a card costing up to 6 Coins that the player to your right gained on his last turn.
 //10	*Warehouse		Seaside	Action				$3	+3 Card, +1 Action, Discard 3 cards.
-//11	Caravan			Seaside	Action - Duration	$4	+1 Card, +1 Action. At the start of your next turn, +1 Card.
-//12	Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
-//13	Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
+//11	*Caravan		Seaside	Action - Duration	$4	+1 Card, +1 Action. At the start of your next turn, +1 Card.
+//12	*Cutpurse		Seaside	Action - Attack		$4	+2 Coins, Each other player discards a Copper card (or reveals a hand with no Copper).
+//13	*Island			Seaside	Action - Victory	$4	Set aside this and another card from your hand. Return them to your deck at the end of the game. 2 VP.
 //14	Navigator		Seaside	Action				$4	+2 Coins, Look at the top 5 cards of your deck. Either discard all of them, or put them back on top of your deck in any order.
 //15	Pirate Ship		Seaside	Action - Attack		$4	Choose one: Each other player reveals the top 2 cards of his deck, trashes a revealed Treasure that you choose, discards the rest, and if anyone trashed a Treasure you take a Coin token; or, +1 Coin per Coin token you've taken with Pirate Ships this game.
 //16	Salvager		Seaside	Action				$4	+1 Buy, Trash a card from your hand. +Coins equal to its cost.
