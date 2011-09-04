@@ -1921,7 +1921,40 @@ dom.cards['Scout'] = new dom.card('Scout', { 'Action': 1 }, 4, '+1 Action. Revea
 
 dom.cards['Duke'] = new dom.card('Duke', { 'Victory': 1 }, 5, 'Worth 1 VP per Duchy you have.', []);
 
-//18    Minion          Intrigue	Action - Attack	$5	+1 Action, Choose one: +2 Coins; or discard your hand, +4 Cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
+
+dom.cards['Minion'] = new dom.card('Minion', { 'Action': 1, 'Attack': 1 }, 5, '+1 Action. Choose one: +2 Coin; or discard your hand, +4 Cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.', [
+    rules.plusActions(1),
+    function(p, c) {
+        var opts = [new dom.Option('coin', '+2 Coin'), new dom.Option('hand', 'Discard your hand, +4 Cards, everyone discards and draws 4.')];
+        var dec = new dom.Decision(p, opts, 'Choose which action for your Minion.', []);
+        p.game_.decision(dec, function(key) {
+            if(key == 'coin') {
+                rules.plusCoin(2)(p, c);
+            } else {
+                dom.utils.append(p.discards_, p.hand_);
+                p.hand_ = [];
+                var drawn = p.draw(4);
+                p.logMe('discards his whole hand and draws ' + drawn + ' cards.');
+
+                var rule = rules.everyOtherPlayer(true, true, function(p, o, c) {
+                    if(o.hand_.length >= 5) {
+                        dom.utils.append(o.discards_, o.hand_);
+                        o.hand_ = [];
+                        var drawn = o.draw(4);
+                        o.logMe('discards his whole hand and draws ' + drawn + ' cards.');
+                        c();
+                    } else {
+                        o.logMe('has fewer than 5 cards in hand.');
+                        c();
+                    }
+                });
+                rule(p, c);
+            }
+        });
+    }
+]);
+
+
 //19    Saboteur        Intrigue	Action - Attack	$5	Each other player reveals cards from the top of his deck until revealing one costing 3 Coins or more. He trashes that card and may gain a card costing at most 2 Coins less than it. He discards the other revealed cards.
 //20    Torturer        Intrigue	Action - Attack	$5	+3 Card, Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
 //21    Trading Post    Intrigue	Action	        $5	Trash 2 cards from your hand. If you do, gain a silver card; put it into your hand.
