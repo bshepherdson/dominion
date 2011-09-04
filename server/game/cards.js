@@ -1755,6 +1755,42 @@ dom.cards['Wishing Well'] = new dom.card('Wishing Well', { 'Action': 1 }, 3, '+1
 ]);
 
 
+dom.cards['Baron'] = new dom.card('Baron', { 'Action': 1 }, 4, '+1 Buy. You may discard an Estate card. If you do, +4 Coins. Otherwise, gain an Estate card.', [
+    rules.plusBuys(1),
+    function(p, c) {
+        var estateIndex = -1;
+        for(var i = 0; i < p.hand_.length; i++) {
+            if(p.hand_[i].name == 'Estate') {
+                estateIndex = i;
+                break;
+            }
+        }
+
+        if(estateIndex < 0) {
+            p.buyCard(p.game_.indexInKingdom('Estate'), true);
+        } else {
+            var yn = rules.yesNo('Discard an Estate for Baron?', function(p, c) {
+                var card = p.hand_[estateIndex];
+                p.removeFromHand(estateIndex);
+                p.discards_.push(card);
+                p.logMe('discards an Estate.');
+                rules.plusCoin(4)(p,c);
+            }, function(p, c) {
+                p.buyCard(p.game_.indexInKingdom('Estate'), true);
+                c();
+            });
+            yn(p, c);
+        }
+    }
+]);
+
+
+//11    Bridge          Intrigue	Action	        $4	+1 Buy, +1 Coin. All cards (including cards in players' hands) cost 1 Coin less this turn, but not less than 0 Coins.
+//12    Conspirator     Intrigue	Action	        $4	+2 Coins. If you've played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
+//13    Coppersmith     Intrigue	Action	        $4	Copper produces an extra 1 Coin this turn.
+//14    Ironworks       Intrigue	Action	        $4	Gain a card costing up to 4 Coins. If it is an... Action card, +1 Action. Treasure card, +1 Coin. Victory card, +1 Card.
+//15    Mining Village  Intrigue	Action	        $4	+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coins.
+//16    Scout           Intrigue	Action	        $4	+1 Action. Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top of your deck in any order.
 
 dom.cards.starterDeck = function() {
 	return [
