@@ -1652,7 +1652,39 @@ dom.cards['Shanty Town'] = new dom.card('Shanty Town', { 'Action': 1 }, 3, '+2 A
     }
 ]);
 
-//7     Steward         Intrigue	Action	        $3	Choose one: +2 Cards; or +2 Coins; or trash 2 cards from your hand.
+
+dom.cards['Steward'] = new dom.card('Steward', { 'Action': 1 }, 3, 'Choose one: +2 Cards; or +2 Coins; or trash 2 cards from your hand.', [
+    function(p, c) {
+        var opts = [new dom.Option('cards', '+2 Cards'),
+                    new dom.Option('coins', '+2 Coin'),
+                    new dom.Option('trash', 'Trash 2 cards from your hand.')];
+        var dec = new dom.Decision(p, opts, 'Choose one of the options for Steward.', ['Hand: ' + dom.utils.showCards(p.hand_)]);
+        p.game_.decision(dec, function(key) {
+            if(key == 'cards') {
+                rules.plusCards(2)(p, c);
+            } else if(key == 'coins') {
+                rules.plusCoin(2)(p, c);
+            } else {
+                var repeat = function(count) {
+                    if(count > 1) {
+                        c();
+                        return;
+                    }
+
+                    dom.utils.handDecision(p, 'Choose the ' + (count ? 'second' : 'first') + ' card to trash.', null, dom.utils.const(true), function(index) {
+                        p.logMe('trashes ' + p.hand_[index].name);
+                        p.removeFromHand(index);
+                        repeat(count+1);
+                    }, dom.utils.nullFunction);
+                };
+                repeat(0);
+            }
+        });
+    }
+]);
+
+
+
 //8     Swindler        Intrigue	Action - Attack	$3	+2 Coins, Each other player trashes the top card of his deck and gains a card with the same cost that you choose.
 //9     Wishing Well    Intrigue	Action	        $3	+1 Card, +1 Action, Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.
 
