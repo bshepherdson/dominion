@@ -1592,6 +1592,54 @@ dom.cards['Great Hall'] = new dom.card('Great Hall', { 'Action': 1, 'Victory': 1
 ]);
 
 
+dom.cards['Masquerade'] = new dom.card('Masquerade', { 'Action': 1 }, 3, '+2 Cards. Each player passes a card in their hand to the player on their left. You may trash a card from your hand.', [
+    rules.everyPlayer(true, true, false, function(p, o, c) {
+        dom.utils.handDecision(o, 'Choose a card to pass to the player to your left', null, dom.utils.const(true), function(index) {
+            var card = o.hand_[index];
+            o.removeFromHand(index);
+
+            var live = false;
+            var handled = false;
+            var targetPlayer;
+            for(var i = 0; i < p.game_.players.length; i++) {
+                if(live) {
+                    targetPlayer = p.game_.players[i];
+                    targetPlayer.temp['Masquerade card'] = card;
+                    handled = true;
+                    break;
+                }
+                if(p.game_.players[i].id_ == o.id_) {
+                    live = true;
+                }
+            }
+
+            if(live && !handled) {
+                targetPlayer = p.game_.players[0];
+                targetPlayer.temp['Masquerade card'] = card;
+            }
+            o.logMe('passes a card to ' + targetPlayer.name);
+            c();
+        }, c);
+    }),
+    function(p, c) {
+        for(var i = 0; i < p.game_.players.length; i++) {
+            p.game_.players[i].hand_.push(p.game_.players[i].temp['Masquerade card']);
+        }
+
+        dom.utils.handDecision(p, 'Choose a card to trash, or to trash nothing.', 'Trash nothing', dom.utils.const(true), function(index) {
+            p.logMe('trashes ' + p.hand_[index].name + '.');
+            p.removeFromHand(index);
+            c();
+        }, c);
+    }
+]);
+
+
+//6     Shanty Town     Intrigue	Action	        $3	+2 Actions, Reveal your hand. If you have no Action cards in hand, +2 Cards.
+//7     Steward         Intrigue	Action	        $3	Choose one: +2 Cards; or +2 Coins; or trash 2 cards from your hand.
+//8     Swindler        Intrigue	Action - Attack	$3	+2 Coins, Each other player trashes the top card of his deck and gains a card with the same cost that you choose.
+//9     Wishing Well    Intrigue	Action	        $3	+1 Card, +1 Action, Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
