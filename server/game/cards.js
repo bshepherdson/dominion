@@ -990,7 +990,7 @@ dom.cards['Smugglers'] = new dom.card('Smugglers', { 'Action': 1 }, 3, 'Gain a c
 
 		var gained = other.temp['gainedLastTurn'];
 
-		gained = gained.unique(function(x,y) { return x.name == y.name; }).filter(function(c) { return c.cost <= 6; });
+		gained = gained.unique(function(x,y) { return x.card.name == y.card.name; }).filter(function(c) { return c.card.cost <= 6; });
 
 		if(gained.length == 0) {
 			other.logMe('gained no valid cards last turn.');
@@ -1000,10 +1000,10 @@ dom.cards['Smugglers'] = new dom.card('Smugglers', { 'Action': 1 }, 3, 'Gain a c
 
 		var map = {};
 		for(var i = 0; i < gained.length; i++) {
-			map[gained[i].name] = p.game_.indexInKingdom(gained[i].name);
+			map[gained[i].card.name] = p.game_.indexInKingdom(gained[i].card.name);
 		}
 
-		var options = gained.map(function(c) { return new dom.Option(c.name, c.name); });
+		var options = gained.map(function(c) { return new dom.Option(c.card.name, c.card.name); });
 		var dec = new dom.Decision(p, options, 'Choose a card to gain from those that ' + other.name + ' gained last turn.', []);
 		p.game_.decision(dec, function(key) {
 			p.buyCard(map[key], true);
@@ -1411,12 +1411,21 @@ dom.cards['Tactician'] = new dom.card('Tactician', { 'Action': 1, 'Duration': 1 
 ]);
 
 
+dom.cards['Treasury'] = new dom.card('Treasury', { 'Action': 1 }, 5, '+1 Card, +1 Action, +1 Coin. When you discard this from play, if you didn\'t buy a Victory card this turn, you may put this on top of your deck.', [
+    rules.plusCards(1),
+    rules.plusActions(1),
+    rules.plusCoin(1)
+]);
+
 
 //25	Treasury		Seaside	Action				$5	+1 Card, +1 Action, +1 Coin, When you discard this from play, if you didn't buy a Victory card this turn, you may put this on top of your deck.
 //26	Wharf			Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Cards, +1 Buy.
 
 dom.cards.starterDeck = function() {
 	return [
+		dom.cards['Treasury'],
+		dom.cards['Treasury'],
+		dom.cards['Treasury'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],

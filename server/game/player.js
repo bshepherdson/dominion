@@ -231,7 +231,7 @@ dom.player.prototype.buyCard = function(index, free) {
 	this.discards_.push(inKingdom.card);
 	inKingdom.count--;
 
-	this.temp['gainedLastTurn'].push(inKingdom.card);
+	this.temp['gainedLastTurn'].push({ bought: !free, card: inKingdom.card });
 
 	this.logMe( (free ? 'gains' : 'buys') + ' ' + inKingdom.card.name + '.');
 
@@ -262,30 +262,67 @@ dom.player.prototype.turnCleanupPhase = function() {
 		this.discards_.push(this.duration_[i]);
 	}
 	this.duration_ = [];
+    var treasuries = [];
 	// then move cards in play into duration or discards
 	for(var i = 0; i < this.inPlay_.length; i++) {
 		if(this.inPlay_[i].types['Duration']) {
 			this.duration_.push(this.inPlay_[i]);
+        } else if(this.inPlay_[i].name == 'Treasury') {
+            treasuries.push(this.inPlay_[i]);
 		} else {
 			this.discards_.push(this.inPlay_[i]);
 		}
 	}
-	console.log('Durations');
-	console.log(this.duration_);
+
 	// and the hand to the discards
 	for(var i = 0; i < this.hand_.length; i++) {
-		this.discards_.push(this.hand_[i]);
+        if(this.hand_[i].name == 'Treasury') {
+            treasuries.push(this.hand_[i]);
+        } else {
+            this.discards_.push(this.hand_[i]);
+        }
 	}
 	this.inPlay_ = [];
 	this.hand_ = [];
 
-    if(this.temp['Outpost active']) {
-        this.draw(3);
+    var self = this;
+    var cont = function() {
+        if(self.temp['Outpost active']) {
+            self.draw(3);
+        } else {
+            self.draw(5);
+        }
+
+        self.turnEnd();
+    };
+
+    if(treasuries.length) {
+        var victoryCardsBought = this.temp['gainedLastTurn'].filter(function(c) { return c.bought && c.card.types['Victory']; });
+        if(victoryCardsBought.length) {
+            this.logMe('cannot put Treasuries on top because he bought a Victory card this turn.');
+            cont();
+        } else {
+            var opts = [ new dom.Option('yes', 'Yes'), new dom.Option('no', 'No') ];
+            var dec = new dom.Decision(this, opts, 'Do you want to put ' + treasuries.length + ' Treasur' + (treasuries.length > 1 ? 'ies' : 'y') + ' on top of your deck?', []);
+            this.game_.decision(dec, function(key) {
+                if(key == 'yes') {
+                    for(var i = 0; i < treasuries.length; i++) {
+                        self.deck_.push(treasuries[i]);
+                    }
+                    self.logMe('puts ' + treasuries.length + ' Treasur' + (treasuries.length > 1 ? 'ies' : 'y') + ' on top of his deck.');
+                } else {
+                    for(var i = 0; i < treasuries.length; i++) {
+                        self.discards_.push(treasuries[i]);
+                    }
+                    self.logMe('discards his Treasuries.');
+                }
+                cont();
+            });
+        }
     } else {
-        this.draw(5);
+        cont();
     }
 
-	this.turnEnd();
 };
 
 
