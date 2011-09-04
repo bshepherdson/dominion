@@ -1386,20 +1386,37 @@ dom.cards['Outpost'] = new dom.card('Outpost', { 'Action': 1, 'Duration': 1 }, 5
     }
 ]);
 
-//23	Outpost			Seaside	Action - Duration	$5	You only draw 3 cards (instead of 5) in this turn's Clean-up phase. Take an extra turn after this one. This can't cause you to take more than two consecutive turns.
-//24	Tactician		Seaside	Action - Duration	$5	Discard your hand. If you discarded any cards this way, then at the start of your next turn, +5 Cards, +1 Buy, and +1 Action.
+
+dom.cards['Tactician'] = new dom.card('Tactician', { 'Action': 1, 'Duration': 1 }, 5, 'Discard your whole hand. If you discarded any cards this way, then at the start of your next turn, +5 Cards, +1 Buy, and +1 Action.', [
+    function(p, c) {
+        if(p.hand_.length == 0) {
+            p.logMe('has no hand to discard, so Tactician has no effect.');
+            c();
+            return;
+        }
+
+        while(p.hand_.length) {
+            p.discards_.push(p.hand_.pop());
+        }
+
+        p.durationRules.push({ name: 'Tactician', rules: [ function(p) {
+            p.logMe('gains +5 Cards, +1 Buy, and +1 Action.');
+            p.draw(5);
+            p.actions++;
+            p.buys++;
+        }] });
+
+        c();
+    }
+]);
+
+
+
 //25	Treasury		Seaside	Action				$5	+1 Card, +1 Action, +1 Coin, When you discard this from play, if you didn't buy a Victory card this turn, you may put this on top of your deck.
 //26	Wharf			Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Cards, +1 Buy.
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Outpost'],
-		dom.cards['Outpost'],
-		dom.cards['Outpost'],
-		dom.cards['Outpost'],
-		dom.cards['Outpost'],
-		dom.cards['Outpost'],
-		dom.cards['Outpost'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
