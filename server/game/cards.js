@@ -1432,6 +1432,30 @@ dom.cards['Wharf'] = new dom.card('Wharf', { 'Action': 1, 'Duration': 1 }, 5, 'N
 ]);
 
 
+dom.cards['Courtyard'] = new dom.card('Courtyard', { 'Action': 1 }, 2, '+3 Cards. Put a card from your hand on top of your deck.', [
+    rules.plusCards(3),
+    function(p, c) {
+        var opts = dom.utils.cardsToOptions(p.hand_);
+        var dec = new dom.Decision(p, opts, 'Choose a card from your hand to put back on top of your deck.', []);
+        p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+            p.deck_.push(p.hand_[index]);
+
+            var newhand = [];
+            for(var i = 0; i < p.hand_.length; i++) {
+                if(i != index) {
+                    newhand.push(p.hand_[i]);
+                }
+            }
+            p.hand_ = newhand;
+            p.logMe('puts a card on top of his card.');
+            c();
+        }, dom.utils.nullFunction));
+    }
+]);
+
+//2     Pawn            Intrigue	Action	        $2	Choose two: +1 Card, +1 Action, +1 Buy, +1 Coin. (The choices must be different.).
+//3     Secret Chamber  Intrigue	Action - Reaction	$2	Discard any number of cards. +1 Coin per card discarded. - When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck.
+//4     Great Hall      Intrigue	Action - Victory	$3	1 Victory, +1 Card, +1 Action.
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
