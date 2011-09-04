@@ -1828,7 +1828,29 @@ dom.cards['Coppersmith'] = new dom.card('Coppersmith', { 'Action': 1 }, 4, 'Copp
 ]);
 
 
-//14    Ironworks       Intrigue	Action	        $4	Gain a card costing up to 4 Coins. If it is an... Action card, +1 Action. Treasure card, +1 Coin. Victory card, +1 Card.
+dom.cards['Ironworks'] = new dom.card('Ironworks', { 'Action': 1 }, 4, 'Gain a card costing up to 4 Coin. If it is an: Action card, +1 Action; Treasure card, +1 Coin; Victory card, +1 Card.', [
+    function(p, c) {
+        dom.utils.gainCardDecision(p, 'Gain a card costing up to 4 Coin.', null, [], function(c) { return p.game_.cardCost(c) <= 4; }, function(repeat) {
+            return dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                var card = p.game_.kingdom[index].card;
+
+                if(card.types['Action']) {
+                    rules.plusActions(1)(p, dom.utils.nullFunction);
+                }
+                if(card.types['Treasure']) {
+                    rules.plusCoin(1)(p, dom.utils.nullFunction);
+                }
+                if(card.types['Victory']) {
+                    rules.plusCards(1)(p, dom.utils.nullFunction);
+                }
+
+                c();
+            }, repeat);
+        });
+    }
+]);
+
+
 //15    Mining Village  Intrigue	Action	        $4	+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coins.
 //16    Scout           Intrigue	Action	        $4	+1 Action. Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top of your deck in any order.
 
