@@ -1635,7 +1635,23 @@ dom.cards['Masquerade'] = new dom.card('Masquerade', { 'Action': 1 }, 3, '+2 Car
 ]);
 
 
-//6     Shanty Town     Intrigue	Action	        $3	+2 Actions, Reveal your hand. If you have no Action cards in hand, +2 Cards.
+dom.cards['Shanty Town'] = new dom.card('Shanty Town', { 'Action': 1 }, 3, '+2 Actions. Reveal your hand. If you have no Action cards in hand, +2 Cards.', [
+    rules.plusActions(2),
+    function(p, c) {
+        p.logMe('reveals his hand: ' + dom.utils.showCards(p.hand_));
+
+        var actions = p.hand_.filter(function(x) { return x.types['Action']; });
+        if(actions.length) {
+            p.logMe('has Actions in hand.');
+        } else {
+            var drawn = p.draw(2);
+            p.logMe('has no Actions, and draws ' + drawn + ' cards.');
+        }
+
+        c();
+    }
+]);
+
 //7     Steward         Intrigue	Action	        $3	Choose one: +2 Cards; or +2 Coins; or trash 2 cards from your hand.
 //8     Swindler        Intrigue	Action - Attack	$3	+2 Coins, Each other player trashes the top card of his deck and gains a card with the same cost that you choose.
 //9     Wishing Well    Intrigue	Action	        $3	+1 Card, +1 Action, Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.
