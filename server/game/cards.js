@@ -1586,8 +1586,12 @@ dom.cards['Secret Chamber'].reactionRule = rules.yesNo('Do you want to reveal yo
     });
 
 
+dom.cards['Great Hall'] = new dom.card('Great Hall', { 'Action': 1, 'Victory': 1 }, 3, '+1 Card, +1 Action. 1 VP.', [
+    rules.plusCards(1),
+    rules.plusActions(1)
+]);
 
-//4     Great Hall      Intrigue	Action - Victory	$3	1 Victory, +1 Card, +1 Action.
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
@@ -1701,7 +1705,8 @@ dom.cards.victoryValues = {
 	'Estate': 1,
 	'Duchy': 3,
 	'Province': 6,
-	'Island': 2
+	'Island': 2,
+    'Great Hall': 1
 };
 
 dom.cards.cardCount = function(card, players) {
