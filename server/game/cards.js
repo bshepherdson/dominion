@@ -1292,12 +1292,45 @@ dom.cards['Treasure Map'] = new dom.card('Treasure Map', { 'Action': 1 }, 4, 'Tr
 ]);
 
 
+dom.cards['Bazaar'] = new dom.card('Bazaar', { 'Action': 1 }, 5, '+1 Card, +2 Actions, +1 Coin.', [
+    rules.plusCards(1),
+    rules.plusActions(2),
+    rules.plusCoin(1)
+]);
+
+
+dom.cards['Explorer'] = new dom.card('Explorer', { 'Action': 1 }, 5, 'You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.', [
+    function(p, c) {
+        var provinces = p.hand_.filter(function(x) { return x.name == 'Province'; });
+        var noProvince = function(p) {
+            p.logMe('gains a Silver, putting it in his hand.');
+            p.hand_.push(dom.cards['Silver']);
+            console.log('noProvince callback');
+        };
+
+        if(provinces.length > 0) {
+            var yn = rules.yesNo('Do you want to reveal a Province?', function(p) {
+                p.logMe('reveals a Province card and gains a Gold, putting it in his hand.');
+                p.hand_.push(dom.cards['Gold']);
+                console.log('province callback');
+            }, noProvince);
+            yn(p, c);
+        } else {
+            noProvince(p);
+            c();
+        }
+    }
+]);
+
+//19	Bazaar			Seaside	Action				$5	+1 Card, +2 Actions, +1 Coin.
+//20	Explorer		Seaside	Action				$5	You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.
+//21	Ghost Ship		Seaside	Action - Attack		$5	+2 Card, Each other player with 4 or more cards in hand puts cards from his hand on top of his deck until he has 3 cards in his hand.
 
 dom.cards.starterDeck = function() {
 	return [
-        dom.cards['Treasure Map'],
-        dom.cards['Treasure Map'],
-        dom.cards['Treasure Map'],
+        dom.cards['Explorer'],
+        dom.cards['Province'],
+        dom.cards['Province'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
