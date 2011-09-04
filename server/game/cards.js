@@ -1418,14 +1418,22 @@ dom.cards['Treasury'] = new dom.card('Treasury', { 'Action': 1 }, 5, '+1 Card, +
 ]);
 
 
-//25	Treasury		Seaside	Action				$5	+1 Card, +1 Action, +1 Coin, When you discard this from play, if you didn't buy a Victory card this turn, you may put this on top of your deck.
-//26	Wharf			Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Cards, +1 Buy.
+dom.cards['Wharf'] = new dom.card('Wharf', { 'Action': 1, 'Duration': 1 }, 5, 'Now and at the start of your next turn: +2 Cards, +1 Buy.', [
+    rules.plusCards(2),
+    rules.plusBuys(1),
+    function(p, c) {
+        p.durationRules.push({ name: 'Wharf', rules: [ function(p) {
+            p.logMe('gains +2 Cards and +1 Buy');
+            p.draw(2);
+            p.buys++;
+        }] });
+        c();
+    }
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
-		dom.cards['Treasury'],
-		dom.cards['Treasury'],
-		dom.cards['Treasury'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
@@ -1442,6 +1450,7 @@ dom.cards.starterDeck = function() {
 
 dom.cards.drawKingdom = function() {
 	var all = [
+        // Base
 		dom.cards['Cellar'],
 		dom.cards['Chapel'],
 		dom.cards['Moat'],
@@ -1467,11 +1476,39 @@ dom.cards.drawKingdom = function() {
 		dom.cards['Mine'],
 		dom.cards['Witch'],
 		dom.cards['Adventurer'],
+
+        // Seaside
+        dom.cards['Embargo'],
+        dom.cards['Haven'],
+        dom.cards['Lighthouse'],
+        dom.cards['Native Village'],
+        dom.cards['Pearl Diver'],
+        dom.cards['Ambassador'],
+        dom.cards['Fishing VillageSeaside'],
+        dom.cards['Lookout'],
+        dom.cards['Smugglers'],
+        dom.cards['Warehouse'],
+        dom.cards['Caravan'],
+        dom.cards['Cutpurse'],
+        dom.cards['Island'],
+        dom.cards['Navigator'],
+        dom.cards['Pirate Ship'],
+        dom.cards['Salvager'],
+        dom.cards['Sea Hag'],
+        dom.cards['Treasure Map'],
+        dom.cards['Bazaar'],
+        dom.cards['Explorer'],
+        dom.cards['Ghost Ship'],
+        dom.cards['Merchant Ship'],
+        dom.cards['Outpost'],
+        dom.cards['Tactician'],
+        dom.cards['Treasury'],
+        dom.cards['Wharf'],
 	];
 
 	var drawn = [];
 	while(drawn.length < 10) {
-		var n = Math.floor(Math.random() * 25);
+		var n = Math.floor(Math.random() * all.length);
 		if(drawn.filter(function(c) { return c == n; }).length == 0) {
 			drawn.push(n);
 		}
