@@ -283,8 +283,9 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
                     for(var j = 0; j < reactions.length; j++) {
                         reactions[j].reactionRule(p.game_.players[index], reactionCont);
                     }
+                } else {
+                    handleAction(p.game_.players[index]);
                 }
-
 			};
 
 			repeat(0);
@@ -1684,8 +1685,46 @@ dom.cards['Steward'] = new dom.card('Steward', { 'Action': 1 }, 3, 'Choose one: 
 ]);
 
 
+dom.cards['Swindler'] = new dom.card('Swindler', { 'Action': 1, 'Attack': 1 }, 3, '+2 Coin. Each other player trashes the top card of his deck and gains a card with the same cost that you choose.', [
+    rules.plusCoin(2),
+    rules.everyOtherPlayer(false, true, function(p, o, c) {
+        var drawn = o.draw();
+        if(drawn == 0) {
+            o.logMe('has no cards to draw.');
+            c();
+            return;
+        }
 
-//8     Swindler        Intrigue	Action - Attack	$3	+2 Coins, Each other player trashes the top card of his deck and gains a card with the same cost that you choose.
+        var topCard = o.hand_.pop();
+        var log = 'trashes his top card, ' + topCard.name;
+        var cost = topCard.cost;
+
+        var replacements = p.game_.kingdom
+                            .filter(function(x) { return x.count > 0; })
+                            .map(function(x) { return x.card; })
+                            .filter(function(x) { return x.cost == cost; });
+
+        if(replacements.length == 0) {
+            o.logMe(log + ', but there are no replacements.');
+            c();
+        } else if(replacements.length == 1) {
+            var index = p.game_.indexInKingdom(replacements[0].name);
+            o.logMe(log + '.');
+            o.buyCard(index, true);
+            c();
+        } else {
+            o.logMe(log + '.');
+            var opts = dom.utils.cardsToOptions(replacements);
+            var dec = new dom.Decision(p, opts, 'Choose a replacement for ' + o.name + '\'s Swindled ' + topCard.name + '.', []);
+            p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                o.buyCard(p.game_.indexInKingdom(replacements[index].name));
+                c();
+            }, c));
+        }
+    })
+]);
+
+
 //9     Wishing Well    Intrigue	Action	        $3	+1 Card, +1 Action, Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.
 
 dom.cards.starterDeck = function() {

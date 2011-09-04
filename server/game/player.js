@@ -36,6 +36,7 @@ dom.player = function(game, client, name) {
 
 	// used as a scratchpad to store things between callbacks
 	this.temp = {};
+	this.temp['gainedLastTurn'] = [];
 	// used for the async rules handling
 	this.rules_ = [];
 	this.durationRules = [];
@@ -327,7 +328,6 @@ dom.player.prototype.turnCleanupPhase = function() {
 
 
 dom.player.prototype.turnEnd = function() {
-	//console.log(this);
 	this.logMe(' ends turn.');
 
     if(this.temp['Outpost active']) {
