@@ -1608,6 +1608,33 @@ dom.cards.wireCards = function(cards) {
 //25	Treasury		Seaside	Action				$5	+1 Card, +1 Action, +1 Coin, When you discard this from play, if you didn't buy a Victory card this turn, you may put this on top of your deck.
 //26	Wharf			Seaside	Action - Duration	$5	Now and at the start of your next turn: +2 Cards, +1 Buy.
 
+// Intrigue
+//1     Courtyard       Intrigue	Action	        $2	+3 Card, Put a card from your hand on top of your deck.
+//2     Pawn            Intrigue	Action	        $2	Choose two: +1 Card, +1 Action, +1 Buy, +1 Coin. (The choices must be different.).
+//3     Secret Chamber  Intrigue	Action - Reaction	$2	Discard any number of cards. +1 Coin per card discarded. - When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck.
+//4     Great Hall      Intrigue	Action - Victory	$3	1 Victory, +1 Card, +1 Action.
+//5     Masquerade      Intrigue	Action	        $3	+2 Card, Each player passes a card in their hand to the player on their left. You may trash a card from your hand.
+//6     Shanty Town     Intrigue	Action	        $3	+2 Actions, Reveal your hand. If you have no Action cards in hand, +2 Cards.
+//7     Steward         Intrigue	Action	        $3	Choose one: +2 Cards; or +2 Coins; or trash 2 cards from your hand.
+//8     Swindler        Intrigue	Action - Attack	$3	+2 Coins, Each other player trashes the top card of his deck and gains a card with the same cost that you choose.
+//9     Wishing Well    Intrigue	Action	        $3	+1 Card, +1 Action, Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.
+//10    Baron           Intrigue	Action	        $4	+1 Buy, You may discard an Estate card. If you do, +4 Coins. Otherwise, gain an Estate card.
+//11    Bridge          Intrigue	Action	        $4	+1 Buy, +1 Coin. All cards (including cards in players' hands) cost 1 Coin less this turn, but not less than 0 Coins.
+//12    Conspirator     Intrigue	Action	        $4	+2 Coins. If you've played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
+//13    Coppersmith     Intrigue	Action	        $4	Copper produces an extra 1 Coin this turn.
+//14    Ironworks       Intrigue	Action	        $4	Gain a card costing up to 4 Coins. If it is an... Action card, +1 Action. Treasure card, +1 Coin. Victory card, +1 Card.
+//15    Mining Village  Intrigue	Action	        $4	+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coins.
+//16    Scout           Intrigue	Action	        $4	+1 Action. Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top of your deck in any order.
+//17    Duke            Intrigue	Victory	        $5	Worth 1 Victory per Duchy you have.
+//18    Minion          Intrigue	Action - Attack	$5	+1 Action, Choose one: +2 Coins; or discard your hand, +4 Cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
+//19    Saboteur        Intrigue	Action - Attack	$5	Each other player reveals cards from the top of his deck until revealing one costing 3 Coins or more. He trashes that card and may gain a card costing at most 2 Coins less than it. He discards the other revealed cards.
+//20    Torturer        Intrigue	Action - Attack	$5	+3 Card, Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
+//21    Trading Post    Intrigue	Action	        $5	Trash 2 cards from your hand. If you do, gain a silver card; put it into your hand.
+//22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
+//23    Upgrade         Intrigue	Action	        $5	+1 Card, +1 Action, Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.
+//24    Harem           Intrigue	Treasure - Victory	$6	2 Coins, 2 Victory.
+//25    Nobles          Intrigue	Action - Victory	$6	2 Victory, Choose one: +3 Cards, or +2 Actions.
+
 
 exports.cards = dom.cards;
 exports.card = dom.card;
