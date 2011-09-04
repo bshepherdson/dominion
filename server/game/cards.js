@@ -1453,7 +1453,54 @@ dom.cards['Courtyard'] = new dom.card('Courtyard', { 'Action': 1 }, 2, '+3 Cards
     }
 ]);
 
-//2     Pawn            Intrigue	Action	        $2	Choose two: +1 Card, +1 Action, +1 Buy, +1 Coin. (The choices must be different.).
+
+dom.cards['Pawn'] = new dom.card('Pawn', { 'Action': 1 }, 2, 'Choose two: +1 Card, +1 Action, +1 Buy, +1 Coin. (The choices must be different.).', [
+    function(p, c) {
+        var opts = [new dom.Option('card', '+1 Card'), new dom.Option('action', '+1 Action'), new dom.Option('buy', '+1 Buy'), new dom.Option('coin', '+1 Coin')];
+        var dec1 = new dom.Decision(p, opts, 'Choose the first effect of Pawn.', []);
+
+
+        var handler = function(times) {
+            return function(key) {
+                if(key == 'card') {
+                    if(p.draw()) {
+                        p.logMe('draws 1 card.');
+                    } else {
+                        p.logMe('has no cards left to draw.');
+                    }
+                } else if(key == 'action') {
+                    p.actions++;
+                    p.logMe('gains +1 Action.');
+                } else if(key == 'buy') {
+                    p.buys++;
+                    p.logMe('gains +1 Buy.');
+                } else if(key == 'coin') {
+                    p.coin++;
+                    p.logMe('gains +1 Coin.');
+                }
+
+                if(times >= 2) {
+                    c();
+                    return;
+                }
+
+                var newopts = [];
+                for(var i = 0; i < 4; i++) {
+                    if(opts[i].key != key) {
+                        newopts.push(opts[i]);
+                    }
+                }
+
+                var dec2 = new dom.Decision(p, newopts, 'Choose the second effect of Pawn.', ['Hand: ' + dom.utils.showCards(p.hand_)]);
+                p.game_.decision(dec2, handler(2));
+            };
+        };
+
+        p.game_.decision(dec1, handler(1));
+    }
+]);
+
+
 //3     Secret Chamber  Intrigue	Action - Reaction	$2	Discard any number of cards. +1 Coin per card discarded. - When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck.
 //4     Great Hall      Intrigue	Action - Victory	$3	1 Victory, +1 Card, +1 Action.
 dom.cards.starterDeck = function() {
@@ -1508,7 +1555,7 @@ dom.cards.drawKingdom = function() {
         dom.cards['Native Village'],
         dom.cards['Pearl Diver'],
         dom.cards['Ambassador'],
-        dom.cards['Fishing VillageSeaside'],
+        dom.cards['Fishing Village'],
         dom.cards['Lookout'],
         dom.cards['Smugglers'],
         dom.cards['Warehouse'],

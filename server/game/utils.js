@@ -146,3 +146,7 @@ Array.prototype.unique = function(opt_cmp) {
 	return out;
 };
 
+exports.showCards = function(cards) {
+    return cards.map(function(x) { return x.name }).join(', ');
+};
+
