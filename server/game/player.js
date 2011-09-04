@@ -57,7 +57,13 @@ dom.player.prototype.turnStart = function() {
 	this.coin = 0;
 	this.temp['gainedLastTurn'] = [];
 
-	this.logMe('starts turn.');
+    if(this.temp['Outpost active']) {
+        this.logMe('starts his Outpost turn.');
+        this.temp['Outpost active'] = false;
+        this.temp['Outpost turns']++;
+    } else {
+        this.logMe('starts turn.');
+    }
 
 	for(var i = 0; i < this.durationRules.length; i++) {
 		var d = this.durationRules[i];
@@ -272,7 +278,12 @@ dom.player.prototype.turnCleanupPhase = function() {
 	}
 	this.inPlay_ = [];
 	this.hand_ = [];
-	this.draw(5);
+
+    if(this.temp['Outpost active']) {
+        this.draw(3);
+    } else {
+        this.draw(5);
+    }
 
 	this.turnEnd();
 };
@@ -281,8 +292,13 @@ dom.player.prototype.turnCleanupPhase = function() {
 dom.player.prototype.turnEnd = function() {
 	//console.log(this);
 	this.logMe(' ends turn.');
-	this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
-	this.game_.nextPlayer();
+
+    if(this.temp['Outpost active']) {
+        this.turnStart();
+    } else {
+        this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
+        this.game_.nextPlayer();
+    }
 };
 
 
