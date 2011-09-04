@@ -377,7 +377,7 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 
 dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a card costing up to 4 Coin.', [
 	function(p, c) {
-		dom.utils.gainCardDecision(p, 'Gain a card costing up to 4 Coin', 'Gain nothing', [], function(card) { return card.cost <= 4; },
+		dom.utils.gainCardDecision(p, 'Gain a card costing up to 4 Coin', 'Gain nothing', [], function(card) { return p.game_.cardCost(card) <= 4; },
 			function(repeat) { 
 				return dom.utils.decisionHelper(
 					function() {
@@ -464,7 +464,7 @@ dom.cards['Feast'] = new dom.card('Feast', { 'Action': 1 }, 4, 'Trash this card.
 		c();
 	},
 	function(p,c) {
-		dom.utils.gainCardDecision(p, 'Gain a card costing up to 5 Coin', 'Gain nothing', [], function(card) { return card.cost <= 5; },
+		dom.utils.gainCardDecision(p, 'Gain a card costing up to 5 Coin', 'Gain nothing', [], function(card) { return p.game_.cardCost(card) <= 5; },
 			function(repeat) {
 				return dom.utils.decisionHelper(
 					function() { c(); },
@@ -507,9 +507,9 @@ dom.cards['Remodel'] = new dom.card('Remodel', { 'Action': 1 }, 4, 'Trash a card
 				var card = p.hand_[index];
 				p.logMe('trashes ' + card.name + '.');
 				p.removeFromHand(index);
-				var maxCost = card.cost + 2;
+				var maxCost = p.game_.cardCost(card) + 2;
 
-				dom.utils.gainCardDecision(p, 'Choose a card to gain (max value ' + maxCost + ')', 'Do not gain anything.', [], function(c){ return c.cost <= maxCost; },
+				dom.utils.gainCardDecision(p, 'Choose a card to gain (max value ' + maxCost + ')', 'Do not gain anything.', [], function(c){ return p.game_.cardCost(c) <= maxCost; },
 					function(repeat) {
 						return dom.utils.decisionHelper(
 							function() {
@@ -715,24 +715,32 @@ dom.cards['Library'] = new dom.card('Library', { 'Action': 1 }, 5, 'Draw until y
 
 dom.cards['Mine'] = new dom.card('Mine', { 'Action': 1 }, 5, 'Trash a Treasure card from your hand. Gain a Treasure card costing up to 3 Coin more; put it into your hand.', [
 	function(p,c) {
-		dom.utils.handDecision(p, 'Choose a Treasure card from your hand to trash.', 'Trash nothing', function(card){ return card.types['Treasure']; },
+        var treasures = p.hand_.filter(function(x) { return x.types['Treasure']; });
+        if(!treasures.length) {
+            p.logMe('has no Treasures to trash.');
+            c();
+            return;
+        }
+
+		dom.utils.handDecision(p, 'Choose a Treasure card from your hand to trash.', null, function(card){ return card.types['Treasure']; },
 			function(index) {
 				var card = p.hand_[index];
 				p.removeFromHand(index);
-				if(card.name == 'Copper') {
-					p.logMe('trashes Copper for Silver.');
-					p.hand_.push(dom.cards['Silver']);
-				} else if(card.name == 'Silver') {
-					p.logMe('trashes Silver for Gold.');
-					p.hand_.push(dom.cards['Gold']);
-				} else {
-					p.logMe('trashes Gold for Gold.');
-					p.hand_.push(dom.cards['Gold']);
-				}
-				c();
-			}, c);
-	}
+                var maxCost = p.game_.cardCost(card) + 3;
+
+                dom.utils.gainCardDecision(p, 'Choose a Treasure to gain worth at most ' + maxCost + '.', null, [], function(c) { return p.game_.cardCost(c) <= maxCost; },
+                    function(repeat) {
+                        return dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                            p.buyCard(index, true);
+                            p.hand_.push(p.discards_.pop());
+                            c();
+                        }, repeat);
+                    }
+                );
+            }, c);
+    }
 ]);
+                
 
 dom.cards['Market'] = new dom.card('Market', { 'Action': 1 }, 5, '+1 Card, +1 Action, +1 Buy, +1 Coin.', [
 	rules.plusCards(1),
@@ -1043,7 +1051,7 @@ dom.cards['Smugglers'] = new dom.card('Smugglers', { 'Action': 1 }, 3, 'Gain a c
 
 		var gained = other.temp['gainedLastTurn'];
 
-		gained = gained.unique(function(x,y) { return x.card.name == y.card.name; }).filter(function(c) { return c.card.cost <= 6; });
+		gained = gained.unique(function(x,y) { return x.card.name == y.card.name; }).filter(function(c) { return p.game_.cardCost(c.card) <= 6; });
 
 		if(gained.length == 0) {
 			other.logMe('gained no valid cards last turn.');
@@ -1275,8 +1283,9 @@ dom.cards['Salvager'] = new dom.card('Salvager', { 'Action': 1 }, 4, '+1 Buy, Tr
                 }
             }
             p.hand_ = cards;
-            p.logMe('trashes ' + trashed.name + ', gaining +' + trashed.cost + ' Coins.');
-            p.coin += trashed.cost;
+            var coins = p.game_.cardCost(trashed);
+            p.logMe('trashes ' + trashed.name + ', gaining +' + coins + ' Coins.');
+            p.coin += coins;
             c();
         }, c));
     }
@@ -1697,12 +1706,12 @@ dom.cards['Swindler'] = new dom.card('Swindler', { 'Action': 1, 'Attack': 1 }, 3
 
         var topCard = o.hand_.pop();
         var log = 'trashes his top card, ' + topCard.name;
-        var cost = topCard.cost;
+        var cost = p.game_.cardCost(topCard);
 
         var replacements = p.game_.kingdom
                             .filter(function(x) { return x.count > 0; })
                             .map(function(x) { return x.card; })
-                            .filter(function(x) { return x.cost == cost; });
+                            .filter(function(x) { return p.game_.cardCost(c) == cost; });
 
         if(replacements.length == 0) {
             o.logMe(log + ', but there are no replacements.');
@@ -1785,6 +1794,16 @@ dom.cards['Baron'] = new dom.card('Baron', { 'Action': 1 }, 4, '+1 Buy. You may 
 ]);
 
 
+dom.cards['Bridge'] = new dom.card('Bridge', { 'Action': 1 }, 4, '+1 Buy, +1 Coin. All cards (including cards in players\' hands) cost 1 Coin less this turn, but not less than 0 Coin.', [
+    rules.plusBuys(1),
+    rules.plusCoin(1),
+    function(p, c) {
+        p.logMe('reduces all prices by 1 this turn.');
+        p.game_.bridges++;
+        c();
+    }
+]);
+
 //11    Bridge          Intrigue	Action	        $4	+1 Buy, +1 Coin. All cards (including cards in players' hands) cost 1 Coin less this turn, but not less than 0 Coins.
 //12    Conspirator     Intrigue	Action	        $4	+2 Coins. If you've played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
 //13    Coppersmith     Intrigue	Action	        $4	Copper produces an extra 1 Coin this turn.
@@ -1794,6 +1813,10 @@ dom.cards['Baron'] = new dom.card('Baron', { 'Action': 1 }, 4, '+1 Buy. You may 
 
 dom.cards.starterDeck = function() {
 	return [
+        dom.cards['Bridge'],
+        dom.cards['Bridge'],
+        dom.cards['Bridge'],
+        dom.cards['Throne Room'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],

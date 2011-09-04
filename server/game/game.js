@@ -14,6 +14,9 @@ dom.game = function(host) {
 
 	this.host = host; // host's name
 	this.log_ = [];
+
+    // for keeping track of how many bridges have been played this turn.
+    this.bridges = 0;
 };
 
 
@@ -169,6 +172,13 @@ dom.game.prototype.log = function(str) {
 // counterpart function dom.player.logMe is a helper for this.
 dom.game.prototype.logPlayer = function(str, p) { 
 	this.log_.push(p.name + ' ' + str);
+};
+
+
+// Given a card object, calculates its cost with the current bridge level.
+dom.game.prototype.cardCost = function(card) {
+    var cost = card.cost - this.bridges;
+    return cost < 0 ? 0 : cost;
 };
 
 

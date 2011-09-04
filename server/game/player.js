@@ -205,7 +205,7 @@ dom.player.prototype.turnBuyPhase = function() {
 	dom.utils.gainCardDecision(this, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
 		'Buys: ' + this.buys,
 		'Coin: ' + this.coin
-	], function(card) { return card.cost <= p.coin; },
+	], function(card) { return p.game_.cardCost(card) <= p.coin; },
 	function(repeat) {
 		return dom.utils.decisionHelper(
 			function() { p.turnCleanupPhase(); },
@@ -243,7 +243,7 @@ dom.player.prototype.buyCard = function(index, free) {
 	}
 
 	if(!free) {
-		this.coin -= inKingdom.card.cost;
+		this.coin -= this.game_.cardCost(inKingdom.card);
 		this.buys--;
 
 		if(inKingdom.embargoTokens && inKingdom.embargoTokens > 0) {
@@ -257,6 +257,9 @@ dom.player.prototype.buyCard = function(index, free) {
 
 dom.player.prototype.turnCleanupPhase = function() {
 	this.phase_ = dom.player.TurnPhases.CLEANUP;
+
+    // reset the bridge value
+    this.game_.bridges = 0;
 	
 	// move old Duration cards to discard pile
 	for(var i = 0; i < this.duration_.length; i++) {

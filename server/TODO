@@ -1,3 +1,5 @@
+- Fix Mine to be flexible now that there are more Treasure cards.
+
 - Replace 'Player N' with email addresses.
 - Turn counter
 - Some kind of notifications. What frameworks are out there? Email is a little slow, but easy to implement.

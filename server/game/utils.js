@@ -73,7 +73,7 @@ exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFu
 		var inKingdom = p.game_.kingdom[i];
 		var card = inKingdom.card;
 		if(inKingdom.count > 0 && cardPred(card)) {
-			options.push(new dom.Option('card['+i+']', '('+ card.cost +
+			options.push(new dom.Option('card['+i+']', '('+ p.game_.cardCost(card) +
 				(inKingdom.embargoTokens ? ', ' + inKingdom.embargoTokens + ' Embargo token' + (inKingdom.embargoTokens > 1 ? 's' : '')  : '') +
 				') ' + card.name));
 		}
