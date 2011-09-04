@@ -1670,8 +1670,25 @@ dom.cards.drawKingdom = function() {
 		}
 	}
 
-	drawn.sort(function(a,b){ return a-b; });
-	return drawn.map(function(n) { return all[n]; });
+    var cards = drawn.map(function(n) { return all[n]; });
+    cards.sort(function(a,b) {
+        costDiff = a.cost - b.cost;
+        if(costDiff != 0) {
+            return costDiff;
+        } else {
+            if(a.name < b.name) {
+                return -1;
+            } else if(a.name > b.name){
+                return 1;
+            } else {
+                // can't happen
+                console.log("ERROR: drew two copies of the same card");
+                process.exit(1);
+            }
+        }
+    });
+
+	return cards;
 };
 
 dom.cards.treasureValues = {
