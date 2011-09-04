@@ -363,7 +363,7 @@ dom.player.prototype.draw = function(opt_n) {
 /** @param {number} index The index of the card to discard. */
 dom.player.prototype.discard = function(index) {
 	var card = this.hand_[index];
-	p.logMe('discarded ' + card.name + '.');
+	this.logMe('discarded ' + card.name + '.');
 	this.removeFromHand(index);
 	this.discards_.push(card);
 };

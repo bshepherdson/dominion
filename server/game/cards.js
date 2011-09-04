@@ -154,11 +154,10 @@ rules.yesNo = function(message, yes, no) {
 		var dec = new dom.Decision(p, opts, message, []);
 		p.game_.decision(dec, function(key) {
 			if(key == 'yes') {
-				yes(p);
+				yes(p, c);
 			} else {
-				no(p);
+				no(p, c);
 			}
-			c();
 		});
 	};
 };
@@ -186,28 +185,57 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 			var sent = 0;
 			var completed = 0;
 			var doneSending = false;
+            var reactionsOutstanding = 0;
 
 			var cont = function() {
 				completed++;
-				if(doneSending && completed >= sent) {
+				if(doneSending && reactionsOutstanding == 0 && completed >= sent) {
 					c();
 				}
 			};
 
+            var handleAction = function(o) {
+                var savedBy = o.safeFromAttack();
+                if((includeMe && p.id_ == o.id_)
+                || (p.id_ != o.id_ && 
+                     (!isAttack || !savedBy))){
+                    sent++;
+                    f(p, o, cont);
+                } else if(isAttack && savedBy) {
+                    o.logMe('is protected by ' + savedBy + '.');
+                }
+            };
+
 			for(var i = 0; i < p.game_.players.length; i++) {
-				var savedBy = p.game_.players[i].safeFromAttack();
-				if((includeMe && p.id_ == p.game_.players[i].id_)
-				|| (p.id_ != p.game_.players[i].id_ && 
-					 (!isAttack || !savedBy))){
-					sent++;
-					f(p, p.game_.players[i], cont);
-				} else if(isAttack && savedBy) {
-					p.game_.players[i].logMe('is protected by ' + savedBy + '.');
-				}
+                var wrapper = function() {
+                    var o = p.game_.players[i];
+                    var reactions = o.hand_.filter(function(x) { return x.types['Reaction']; });
+                    if(((includeMe && p.id_ == o.id_) || p.id_ != o.id_) && isAttack && reactions.length) {
+                        reactionsOutstanding += reactions.length;
+
+                        var len = reactions.length;
+
+                        var reactionCont = function(index) {
+                            return function() {
+                                reactionsOutstanding--;
+                                if(index >= len) {
+                                    handleAction(o);
+                                } else {
+                                    reactions[index].reactionRule(o, reactionCont(index+1));
+                                }
+                            };
+                        };
+
+                        reactions[0].reactionRule(o, reactionCont(1));
+                    } else {
+                        handleAction(p.game_.players[i]);
+                    }
+                };
+                wrapper();
 			}
 
 			doneSending = true;
-			if(completed >= sent) {
+			if(reactionsOutstanding == 0 && completed >= sent) {
 				c(); // they've all returned already
 			}
 
@@ -226,14 +254,37 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 					return;
 				}
 
-				var savedBy = p.game_.players[index].safeFromAttack();
-				if(isAttack && savedBy) {
-					p.game_.players[index].logMe('is protected by ' + savedBy + '.');
-				} else {
-					f(p, p.game_.players[index], function() {
-						repeat(index+1);
-					});
-				}
+                var reactionOutstanding = 0;
+
+                var handleAction = function(o) {
+                    var savedBy = o.safeFromAttack();
+                    if(isAttack && savedBy) {
+                        o.logMe('is protected by ' + savedBy + '.');
+                    } else {
+                        f(p, o, function() {
+                            actionComplete = true;
+                            repeat(index+1);
+                        });
+                    }
+                };
+
+                var reactionCont = function() {
+                    reactionsOutstanding--;
+
+                    if(reactionsOutstanding == 0) {
+                        handleAction(p.game_.players[index]);
+                    }
+                };
+
+
+                var reactions = p.game_.players[index].hand_.filter(function(x) { return x.types['Reaction']; });
+                if(isAttack && reactions.length) {
+                    reactionOutstanding = reactions.length;
+                    for(var j = 0; j < reactions.length; j++) {
+                        reactions[j].reactionRule(p.game_.players[index], reactionCont);
+                    }
+                }
+
 			};
 
 			repeat(0);
@@ -285,11 +336,12 @@ dom.cards['Chapel'] = new dom.card('Chapel', { 'Action': 1 }, 2, 'Trash up to 4 
 
 dom.cards['Chancellor'] = new dom.card('Chancellor', { 'Action': 1}, 3, '+2 Coins. You may immediately put your deck into your discard pile.', [
 	rules.plusCoin(2),
-	rules.yesNo('Do you want to move your deck to your discard pile?', function(p) {
+	rules.yesNo('Do you want to move your deck to your discard pile?', function(p, c) {
 		dom.utils.append(p.discards_, p.deck_);
 		p.deck_ = [];
 		p.logMe('moves their deck to their discard pile.');
-	}, function(p) { })
+        c();
+	}, function(p, c) { c(); })
 ]);
 
 dom.cards['Village'] = new dom.card('Village', { 'Action': 1 }, 3, '+1 Card. +2 Actions.', [ rules.plusCards(1), rules.plusActions(2) ]);
@@ -309,7 +361,7 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 			}
 		}
 		return false;
-	}, rules.yesNo('Do you want to trash a Copper for +3 Coin?', function(p) {
+	}, rules.yesNo('Do you want to trash a Copper for +3 Coin?', function(p, c) {
 		for(var i = 0; i < p.hand_.length; i++) {
 			if(p.hand_[i].name == 'Copper') {
 				p.logMe('trashes a Copper for +3 Coin.');
@@ -318,7 +370,8 @@ dom.cards['Moneylender'] = new dom.card('Moneylender', { 'Action': 1 }, 4, 'Tras
 				break;
 			}
 		}
-	}, function(p){ }))
+        c();
+	}, function(p, c){ c(); }))
 ]);
 
 dom.cards['Workshop'] = new dom.card('Workshop', { 'Action': 1 }, 3, 'Gain a card costing up to 4 Coin.', [
@@ -424,6 +477,7 @@ dom.cards['Feast'] = new dom.card('Feast', { 'Action': 1 }, 4, 'Trash this card.
 dom.cards['Moat'] = new dom.card('Moat', { 'Action': 1, 'Reaction': 1 }, 2, '+2 Cards. When another player plays an Attack card, you may reveal this from your hand. If you do, you are unaffected by that Attack.', [
 	rules.plusCards(2)
 ]);
+dom.cards['Moat'].reactionRule = dom.utils.nullFunction; // Moat's reaction rules are handled separately in the everyPlayer code.
 
 dom.cards['Militia'] = new dom.card('Militia', { 'Action': 1, 'Attack': 1 }, 4, '+2 Coin. Each other player discards down to 3 cards in his hand.', [
 	rules.plusCoin(2),
@@ -852,11 +906,13 @@ dom.cards['Pearl Diver'] = new dom.card('Pearl Diver', { 'Action': 1 }, 2, '+1 C
 		}
 
 		var yn = rules.yesNo('The bottom card of your deck was ' + p.deck_[0].name + '. Place it on top of your deck?',
-			function(p) {
+			function(p, c) {
 				p.deck_.push(p.deck_.shift());
 				p.logMe('puts the bottom card of his deck on top.');
-			}, function(p) {
+                c();
+			}, function(p, c) {
 				p.logMe('leaves the bottom card of his deck on the bottom.');
+                c();
 			}
 		);
 
@@ -886,16 +942,13 @@ dom.cards['Ambassador'] = new dom.card('Ambassador', { 'Action': 1, 'Attack': 1 
 				var dec = new dom.Decision(p, options, 'Choose how many copies of ' + card.name + ' to return to the Supply pile.', []);
 				p.game_.decision(dec, function(key) {
 					var removed = 0;
-					console.log('result');
 					for(var i = 0; i < p.hand_.length && removed < key; i++) {
 						if(p.hand_[i].name == card.name) {
-							console.log('removing one');
 							p.removeFromHand(i);
 							inKingdom.count++;
 							removed++;
 						}
 					}
-					console.log('done');
 
 					var strs = {
 						0: 'no copies',
@@ -905,7 +958,6 @@ dom.cards['Ambassador'] = new dom.card('Ambassador', { 'Action': 1, 'Attack': 1 
 					p.logMe('removes ' + strs[key] + ' of ' + card.name + ' from their hand.');
 
 					var f = rules.everyOtherPlayer(false, true, function(active, p, c) {
-						console.log('other player');
 						p.buyCard(kingdomIndex, true);
 						c();
 					});
@@ -1142,9 +1194,6 @@ dom.cards['Pirate Ship'] = new dom.card('Pirate Ship', { 'Action': 1, 'Attack': 
         }
         p.temp['Pirate Ship attack'] = 0;
 
-        console.log(p);
-        console.log('Top of Pirate Ship');
-
         var opts = [new dom.Option('attack', 'Attack the other players'), new dom.Option('coin', 'Gain ' + p.temp['Pirate Ship coins'] + ' Coin')];
         var dec = new dom.Decision(p, opts, 'Choose what to do with your Pirate Ship.', []);
         p.game_.decision(dec, function(key) {
@@ -1302,22 +1351,21 @@ dom.cards['Bazaar'] = new dom.card('Bazaar', { 'Action': 1 }, 5, '+1 Card, +2 Ac
 dom.cards['Explorer'] = new dom.card('Explorer', { 'Action': 1 }, 5, 'You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.', [
     function(p, c) {
         var provinces = p.hand_.filter(function(x) { return x.name == 'Province'; });
-        var noProvince = function(p) {
+        var noProvince = function(p, c) {
             p.logMe('gains a Silver, putting it in his hand.');
             p.hand_.push(dom.cards['Silver']);
-            console.log('noProvince callback');
+            c();
         };
 
         if(provinces.length > 0) {
-            var yn = rules.yesNo('Do you want to reveal a Province?', function(p) {
+            var yn = rules.yesNo('Do you want to reveal a Province?', function(p, c) {
                 p.logMe('reveals a Province card and gains a Gold, putting it in his hand.');
                 p.hand_.push(dom.cards['Gold']);
-                console.log('province callback');
+                c();
             }, noProvince);
             yn(p, c);
         } else {
-            noProvince(p);
-            c();
+            noProvince(p, c);
         }
     }
 ]);
@@ -1501,7 +1549,44 @@ dom.cards['Pawn'] = new dom.card('Pawn', { 'Action': 1 }, 2, 'Choose two: +1 Car
 ]);
 
 
-//3     Secret Chamber  Intrigue	Action - Reaction	$2	Discard any number of cards. +1 Coin per card discarded. - When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck.
+dom.cards['Secret Chamber'] = new dom.card('Secret Chamber', { 'Action': 1, 'Reaction': 1 }, 2, 'Discard any number of cards. +1 Coin per card discarded. -- When another player plays an Attack card, you may reveal this from your hand. If you do, +2 Cards, then put 2 cards from your hand on top of your deck.', [
+    rules.discardMany(function(p, c, discarded) {
+        p.logMe('discards ' + discarded.length + ' cards and gains +' + discarded.length +' Coin.');
+        p.coin += discarded.length;
+        c();
+    })
+]);
+dom.cards['Secret Chamber'].reactionRule = rules.yesNo('Do you want to reveal your Secret Chamber? (+2 Cards, then put 2 cards from your hand on top of your deck.)',
+    function(p, c) { //yes
+        p.logMe('reveals a Secret Chamber, gaining +2 Cards and putting 2 cards on top of his deck.');
+        p.draw(2);
+
+        var count = 0;
+        var messages = ['Choose the first card to put back on top of your deck (next card will go on top of it).',
+                        'Choose the second card to put back on top of your deck (goes on top).'];
+
+        var repeat = function() {
+            dom.utils.handDecision(p, messages[count], null, dom.utils.const(true),
+                function(index) {
+                    var card = p.hand_[index];
+                    p.removeFromHand(index);
+                    p.deck_.push(card);
+
+                    count++;
+                    if(count > 1) {
+                        c();
+                        return;
+                    }
+                    repeat();
+                }, dom.utils.nullFunction);
+        };
+        repeat();
+    }, function(p, c) { //no
+        c();
+    });
+
+
+
 //4     Great Hall      Intrigue	Action - Victory	$3	1 Victory, +1 Card, +1 Action.
 dom.cards.starterDeck = function() {
 	return [
