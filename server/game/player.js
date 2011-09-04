@@ -196,6 +196,9 @@ dom.player.prototype.turnBuyPhase = function() {
 			this.removeFromHand(i);
 			this.discards_.push(card);
 			this.coin += dom.cards.treasureValues[card.name];
+            if(card.name == 'Copper') {
+                this.coin += this.game_.coppersmiths; // worth an extra 1 for each Coppersmith.
+            }
 		} else {
 			i++;
 		}
@@ -258,8 +261,9 @@ dom.player.prototype.buyCard = function(index, free) {
 dom.player.prototype.turnCleanupPhase = function() {
 	this.phase_ = dom.player.TurnPhases.CLEANUP;
 
-    // reset the bridge value
+    // reset game state values
     this.game_.bridges = 0;
+    this.game_.coppersmiths = 0;
 	
 	// move old Duration cards to discard pile
 	for(var i = 0; i < this.duration_.length; i++) {

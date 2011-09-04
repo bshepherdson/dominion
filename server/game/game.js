@@ -17,6 +17,7 @@ dom.game = function(host) {
 
     // for keeping track of how many bridges have been played this turn.
     this.bridges = 0;
+    this.coppersmiths = 0;
 };
 
 

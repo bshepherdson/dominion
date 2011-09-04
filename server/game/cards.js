@@ -1819,7 +1819,15 @@ dom.cards['Conspirator'] = new dom.card('Conspirator', { 'Action': 1 }, 4, '+2 C
 ]);
 
 
-//13    Coppersmith     Intrigue	Action	        $4	Copper produces an extra 1 Coin this turn.
+dom.cards['Coppersmith'] = new dom.card('Coppersmith', { 'Action': 1 }, 4, 'Copper produces an extra 1 Coin this turn.', [
+    function(p, c) {
+        p.logMe('Copper produces an extra 1 Coin this turn.');
+        p.game_.coppersmiths++;
+        c();
+    }
+]);
+
+
 //14    Ironworks       Intrigue	Action	        $4	Gain a card costing up to 4 Coins. If it is an... Action card, +1 Action. Treasure card, +1 Coin. Victory card, +1 Card.
 //15    Mining Village  Intrigue	Action	        $4	+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coins.
 //16    Scout           Intrigue	Action	        $4	+1 Action. Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top of your deck in any order.
