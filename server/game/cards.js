@@ -1725,7 +1725,36 @@ dom.cards['Swindler'] = new dom.card('Swindler', { 'Action': 1, 'Attack': 1 }, 3
 ]);
 
 
-//9     Wishing Well    Intrigue	Action	        $3	+1 Card, +1 Action, Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.
+dom.cards['Wishing Well'] = new dom.card('Wishing Well', { 'Action': 1 }, 3, '+1 Card, +1 Action. Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand.', [
+    rules.plusCards(1),
+    rules.plusActions(1),
+    function(p, c) {
+        var kingdomCards = p.game_.kingdom.map(function(x){ return x.card; });
+        var opts = dom.utils.cardsToOptions(kingdomCards);
+        var dec = new dom.Decision(p, opts, 'Name the card to wish for.', []);
+        p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+            p.logMe('wishes for ' + kingdomCards[index].name + '.');
+
+            var drawn = p.draw();
+            if(!drawn) {
+                p.logMe('has no cards to draw.');
+                c();
+                return;
+            }
+
+            var drawnCard = p.hand_[p.hand_.length-1];
+            if(drawnCard.name == kingdomCards[index].name) {
+                p.logMe('reveals ' + drawnCard.name + ', putting it into his hand.');
+            } else {
+                p.logMe('reveals ' + drawnCard.name + ', discarding it.');
+                p.discards_.push(p.hand_.pop());
+            }
+            c();
+        }, c));
+    }
+]);
+
+
 
 dom.cards.starterDeck = function() {
 	return [
