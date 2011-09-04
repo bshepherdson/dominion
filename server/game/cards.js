@@ -1804,8 +1804,21 @@ dom.cards['Bridge'] = new dom.card('Bridge', { 'Action': 1 }, 4, '+1 Buy, +1 Coi
     }
 ]);
 
-//11    Bridge          Intrigue	Action	        $4	+1 Buy, +1 Coin. All cards (including cards in players' hands) cost 1 Coin less this turn, but not less than 0 Coins.
-//12    Conspirator     Intrigue	Action	        $4	+2 Coins. If you've played 3 or more Actions this turn (counting this): +1 Card, +1 Action.
+
+dom.cards['Conspirator'] = new dom.card('Conspirator', { 'Action': 1 }, 4, '+2 Coin. If you\'ve played 3 or more Actions this turn (counting this): +1 Card, +1 Action.', [
+    rules.plusCoin(2),
+    function(p, c) {
+        var actionsPlayed = p.inPlay_.filter(function(x) { return x.types['Action']; });
+        if(actionsPlayed.length >= 3) {
+            rules.plusCards(1)(p,dom.utils.nullFunction);
+            rules.plusActions(1)(p,c);
+        } else {
+            c();
+        }
+    }
+]);
+
+
 //13    Coppersmith     Intrigue	Action	        $4	Copper produces an extra 1 Coin this turn.
 //14    Ironworks       Intrigue	Action	        $4	Gain a card costing up to 4 Coins. If it is an... Action card, +1 Action. Treasure card, +1 Coin. Victory card, +1 Card.
 //15    Mining Village  Intrigue	Action	        $4	+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coins.
@@ -1813,10 +1826,6 @@ dom.cards['Bridge'] = new dom.card('Bridge', { 'Action': 1 }, 4, '+1 Buy, +1 Coi
 
 dom.cards.starterDeck = function() {
 	return [
-        dom.cards['Bridge'],
-        dom.cards['Bridge'],
-        dom.cards['Bridge'],
-        dom.cards['Throne Room'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
