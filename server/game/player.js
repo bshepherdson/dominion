@@ -400,12 +400,19 @@ dom.player.prototype.calculateScore = function() {
 	var gardens = 0;
 	var cards = 0;
 
+    var dukes = 0;
+    var duchies = 0;
+
 	var scoreArray = function(arr) {
 		for(var i = 0; i < arr.length; i++) {
 			var card = arr[i];
 			cards++;
 			if(card.name == 'Gardens') {
 				gardens++;
+            } else if(card.name == 'Duke') {
+                dukes++;
+            } else if(card.name == 'Duchy') {
+                duchies++;
 			} else if(card.types['Victory']) {
 				score += dom.cards.victoryValues[card.name];
 			} else if(card.types['Curse']) {
@@ -420,6 +427,7 @@ dom.player.prototype.calculateScore = function() {
 	scoreArray(this.temp.islandSetAside);
 
 	score += gardens * Math.floor(cards/10);
+    score += duchies * dukes; // 1 point per Duke per Duchy
 
 	console.log('Score for Player ' + this.id_ + ' = ' + score);
 

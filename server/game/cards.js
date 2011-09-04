@@ -1919,6 +1919,14 @@ dom.cards['Scout'] = new dom.card('Scout', { 'Action': 1 }, 4, '+1 Action. Revea
 ]);
 
 
+dom.cards['Duke'] = new dom.card('Duke', { 'Victory': 1 }, 5, 'Worth 1 VP per Duchy you have.', []);
+
+//18    Minion          Intrigue	Action - Attack	$5	+1 Action, Choose one: +2 Coins; or discard your hand, +4 Cards, and each other player with at least 5 cards in hand discards his hand and draws 4 cards.
+//19    Saboteur        Intrigue	Action - Attack	$5	Each other player reveals cards from the top of his deck until revealing one costing 3 Coins or more. He trashes that card and may gain a card costing at most 2 Coins less than it. He discards the other revealed cards.
+//20    Torturer        Intrigue	Action - Attack	$5	+3 Card, Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
+//21    Trading Post    Intrigue	Action	        $5	Trash 2 cards from your hand. If you do, gain a silver card; put it into your hand.
+//22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
+//23    Upgrade         Intrigue	Action	        $5	+1 Card, +1 Action, Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.
 
 dom.cards.starterDeck = function() {
 	return [
