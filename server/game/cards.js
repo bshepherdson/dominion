@@ -1322,15 +1322,47 @@ dom.cards['Explorer'] = new dom.card('Explorer', { 'Action': 1 }, 5, 'You may re
     }
 ]);
 
-//19	Bazaar			Seaside	Action				$5	+1 Card, +2 Actions, +1 Coin.
-//20	Explorer		Seaside	Action				$5	You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand. Otherwise, gain a Silver card, putting it into your hand.
-//21	Ghost Ship		Seaside	Action - Attack		$5	+2 Card, Each other player with 4 or more cards in hand puts cards from his hand on top of his deck until he has 3 cards in his hand.
+
+dom.cards['Ghost Ship'] = new dom.card('Ghost Ship', { 'Action': 1, 'Attack': 1 }, 5, '+2 Card. Each other player with 4 or more cards in hand puts cards from his hand on top of his deck until he has 3 cards in his hand.', [
+    rules.plusCards(2),
+    rules.everyOtherPlayer(true, true, function(p, o, c) {
+        if(o.hand_.length < 4) {
+            o.logMe('has fewer than 4 cards in his hand.');
+            c();
+            return;
+        }
+
+        var repeat = function() {
+            if(o.hand_.length <= 3) {
+                o.logMe('discards down to 3 cards in hand, putting the cards on top of his deck.');
+                c();
+                return;
+            }
+
+            var opts = dom.utils.cardsToOptions(o.hand_);
+            var dec = new dom.Decision(o, opts, 'Choose a card to discard onto the top of your deck. You must discard down to 3 cards in hand.', []);
+            o.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                var newcards = [];
+                for(var i = 0; i < o.hand_.length; i++) {
+                    if(i == index) {
+                        o.deck_.push(o.hand_[i]);
+                    } else {
+                        newcards.push(o.hand_[i]);
+                    }
+                }
+                o.hand_ = newcards;
+
+                repeat();
+            }, dom.utils.nullFunction));
+        };
+
+        repeat();
+    })
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
-        dom.cards['Explorer'],
-        dom.cards['Province'],
-        dom.cards['Province'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
