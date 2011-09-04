@@ -1851,8 +1851,74 @@ dom.cards['Ironworks'] = new dom.card('Ironworks', { 'Action': 1 }, 4, 'Gain a c
 ]);
 
 
-//15    Mining Village  Intrigue	Action	        $4	+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coins.
-//16    Scout           Intrigue	Action	        $4	+1 Action. Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top of your deck in any order.
+dom.cards['Mining Village'] = new dom.card('Mining Village', { 'Action': 1 }, 4, '+1 Card, +2 Actions. You may trash this card immediately. If you do, +2 Coin.', [
+    rules.plusCards(1),
+    rules.plusActions(2),
+    rules.yesNo('Trash the Mining Village for +2 Coin?', function(p, c) {
+        var card = p.inPlay_.pop();
+        if(card.name == 'Mining Village') {
+            p.logMe('trashes Mining Village for +2 Coin.');
+            rules.plusCoin(2)(p, c);
+        } else {
+            p.logMe('has no Mining Village to trash.');
+            p.inPlay_.push(card);
+            c();
+        }
+    }, function(p, c) {
+        p.logMe('doesn\'t trash Mining Village.');
+        c();
+    })
+]);
+
+
+dom.cards['Scout'] = new dom.card('Scout', { 'Action': 1 }, 4, '+1 Action. Reveal the top 4 cards of your deck. Put the revealed Victory cards into your hand. Put the other cards on top of your deck in any order.', [
+    rules.plusActions(1),
+    function(p, c) {
+        var drawn = p.draw(4);
+
+        var cards = [];
+        for(var i = 0; i < drawn; i++) {
+            cards.push(p.hand_.pop());
+        }
+
+        p.logMe('reveals the top ' + drawn + ' cards of his deck: ' + dom.utils.showCards(cards) + '.');
+
+        var victoryCards = cards.filter(function(x){ return  x.types['Victory']; });
+        var otherCards   = cards.filter(function(x){ return !x.types['Victory']; });
+
+        p.logMe('puts the Victory cards (' + dom.utils.showCards(victoryCards) + ') into his hand.');
+
+        var repeat = function(cards) {
+            if(!cards.length) {
+                p.logMe('puts the other revealed cards on top of his deck.');
+                c();
+                return;
+            } else if(cards.length == 1) {
+                p.deck_.push(cards[0]);
+                repeat([]);
+                return;
+            }
+
+            var opts = dom.utils.cardsToOptions(cards);
+            var dec = new dom.Decision(p, opts, 'Choose the next card to put on your deck. Later cards will go on top of it.', []);
+            p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                var newcards = [];
+                for(var i = 0; i < cards.length; i++){
+                    if(i != index) {
+                        newcards.push(cards[i]);
+                    } else {
+                        p.deck_.push(cards[i]);
+                    }
+                }
+
+                repeat(newcards);
+            }, function() { repeat(cards); }));
+        }
+        repeat(otherCards);
+    }
+]);
+
+
 
 dom.cards.starterDeck = function() {
 	return [
