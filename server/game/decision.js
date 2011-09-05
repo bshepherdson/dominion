@@ -12,6 +12,9 @@ dom.Decision = function(player, options, message, info) {
 	if(player.temp['Native Village mat'] && player.temp['Native Village mat'].length > 0) {
 		this.info.push('Native Village mat: ' + player.temp['Native Village mat'].map(function(c) { return c.name; }).join(', ') );
 	}
+    if(player.game_.tradeRouteLive) {
+        this.info.push('Trade Route mat: ' + player.game_.tradeRouteCoin + ' Coin');
+    }
 
     this.info.push('Hand: ' + player.hand_.map(function(x) { return x.name; }).join(', '));
 

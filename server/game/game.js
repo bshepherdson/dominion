@@ -18,6 +18,7 @@ dom.game = function(host) {
     // for keeping track of how many bridges have been played this turn.
     this.bridges = 0;
     this.coppersmiths = 0;
+    this.tradeRouteLive = false;
 };
 
 
@@ -71,6 +72,16 @@ dom.game.prototype.startGame = function() {
 	this.kingdom.push({ card: dom.cards['Duchy'], count: dom.cards.cardCount(dom.cards['Duchy'], this.players.length) });
 	this.kingdom.push({ card: dom.cards['Province'], count: dom.cards.cardCount(dom.cards['Province'], this.players.length) });
 	this.kingdom.push({ card: dom.cards['Curse'], count: dom.cards.cardCount(dom.cards['Curse'], this.players.length) });
+
+    if(this.indexInKingdom('Trade Route') >= 0) {
+        this.tradeRouteLive = true;
+        this.tradeRouteCards = {};
+        var victoryCards = this.kingdom.filter(function(c) { return c.card.types['Victory']; });
+        for(var i = 0; i < victoryCards.length; i++) {
+            this.tradeRouteCards[victoryCards[i].card.name] = true;
+        }
+        this.tradeRouteCoin = 0;
+    }
 
 	this.nextPlayer();
 };
@@ -165,6 +176,7 @@ dom.game.prototype.indexInKingdom = function(name) {
 			return i;
 		}
 	}
+    return -1;
 };
 
 

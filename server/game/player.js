@@ -301,6 +301,13 @@ dom.player.prototype.buyCard = function(index, free) {
 		this.game_.log('The ' + inKingdom.card.name + ' pile is empty.');
 	}
 
+    console.log(this.game_.tradeRouteCards);
+    if(this.game_.tradeRouteLive && this.game_.tradeRouteCards[inKingdom.card.name]) {
+        this.logMe('moves the Trade Route token from the ' + inKingdom.card.name + ' pile to the Trade Route mat.');
+        this.game_.tradeRouteCards[inKingdom.card.name] = false;
+        this.game_.tradeRouteCoin++;
+    }
+
 	if(!free) {
 		this.coin -= this.game_.cardCost(inKingdom.card);
 		this.buys--;

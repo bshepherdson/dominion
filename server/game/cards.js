@@ -2168,7 +2168,29 @@ dom.cards['Loan'] = new dom.card('Loan', { 'Treasure': 1 }, 3, 'Worth 1 Coin. Wh
     }
 ]);
 
-//2	    Trade Route	    Prosperity	Action	        $3	+1 Buy. +1 Coin per token on the Trade Route mat. Trash a card from your hand. -- Setup: Put a token on each Victory card Supply pile. When a card is gained from that pile, move the token to the Trade Route mat.
+
+dom.cards['Trade Route'] = new dom.card('Trade Route', { 'Action': 1 }, 3, '+1 Buy. +1 Coin per token on the Trade Route mat. Trash a card from your hand. -- Setup: Put a token on each Victory card Supply pile. When a card is gained from that pile, move the token to the Trade Route mat.', [
+    rules.plusBuys(1),
+    function(p, c) {
+        var coins = rules.plusCoin(p.game_.tradeRouteCoin);
+        coins(p, dom.utils.nullFunction);
+
+        if(!p.hand_.length) {
+            p.logMe('has no cards to trash.');
+            c();
+            return;
+        }
+
+        dom.utils.handDecision(p, 'Trash a card from your hand.', null, dom.utils.const(true), function(index) {
+            var card = p.hand_[index];
+            p.removeFromHand(index);
+            p.logMe('trashes ' + card.name + '.');
+            c();
+        }, dom.utils.nullFunction);
+    }
+]);
+
+
 //3	    Watchtower	    Prosperity	Reaction	    $3	Draw until you have 6 cards in hand. -- When you gain a card, you may reveal this from your hand. If you do, either trash that card, or put it on top of your deck.
 
 dom.cards.starterDeck = function() {
