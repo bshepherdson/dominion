@@ -1987,7 +1987,40 @@ dom.cards['Saboteur'] = new dom.card('Saboteur', { 'Action': 1, 'Attack': 1 }, 5
     })
 ]);
 
-//20    Torturer        Intrigue	Action - Attack	$5	+3 Card, Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
+
+dom.cards['Torturer'] = new dom.card('Torturer', { 'Action': 1, 'Attack': 1 }, 5, '+3 Cards. Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.', [
+    rules.plusCards(3),
+    rules.everyOtherPlayer(false, true, function(p, o, c) {
+        var opts = [new dom.Option('discard', 'Discard 2 cards.'), new dom.Option('curse', 'Gain a Curse.')];
+        var dec = new dom.Decision(o, opts, 'Choose what to do for Torturer.', []);
+        p.game_.decision(dec, function(key) {
+            if(key == 'curse') {
+                o.buyCard(p.game_.indexInKingdom('Curse'), true);
+                c();
+            } else {
+                var repeat = function(count) {
+                    if(count >= 2) {
+                        c();
+                        return;
+                    }
+
+                    dom.utils.handDecision(o, 'Discard the ' + (count ? 'second card' : 'first of two cards') + ' from your hand.', null, dom.utils.const(true),
+                        function(index) {
+                            var card = o.hand_[index];
+                            o.removeFromHand(index);
+                            o.discards_.push(card);
+                            o.logMe('discards ' + card.name + '.');
+                            repeat(count+1);
+                        }, dom.utils.nullFunction);
+                };
+
+                repeat(0);
+            }
+        });
+    })
+]);
+
+
 //21    Trading Post    Intrigue	Action	        $5	Trash 2 cards from your hand. If you do, gain a silver card; put it into your hand.
 //22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
 //23    Upgrade         Intrigue	Action	        $5	+1 Card, +1 Action, Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.
