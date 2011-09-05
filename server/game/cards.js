@@ -2380,6 +2380,33 @@ dom.cards.wireCards = function(cards) {
 //24    Harem           Intrigue	Treasure - Victory	$6	2 Coins, 2 Victory.
 //25    Nobles          Intrigue	Action - Victory	$6	2 Victory, Choose one: +3 Cards, or +2 Actions.
 
+//1	    Loan	        Prosperity	Treasure	    $3	Worth 1 Coin. When you play this, reveal cards from your deck until you reveal a Treasure. Discard it or trash it. Discard the other cards.
+//2	    Trade Route	    Prosperity	Action	        $3	+1 Buy. +1 Coin per token on the Trade Route mat. Trash a card from your hand. -- Setup: Put a token on each Victory card Supply pile. When a card is gained from that pile, move the token to the Trade Route mat.
+//3	    Watchtower	    Prosperity	Reaction	    $3	Draw until you have 6 cards in hand. -- When you gain a card, you may reveal this from your hand. If you do, either trash that card, or put it on top of your deck.
+//4	    Bishop	        Prosperity	Action	        $4	+1 Coin. +1 VP token. Trash a card from your hand. +VP tokens equal to half its cost in coins, rounded down. Each other player may trash a card from his hand.
+//5	    Monument	    Prosperity	Action	        $4	+2 Coin; +1 VP token.
+//6	    Quarry	        Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, Action cards cost 2 Coin less, but not less than 0 Coin.
+//7	    Talisman	    Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.
+//8	    Worker's VillageProsperity	Action	        $4	+1 Card, +2 Actions, +1 Buy.
+//9	    City	        Prosperity	Action	        $5	+1 Card, +2 Actions. If there are one or more empty Supply piles, +1 Card. If there are two or more, +1 Coin and +1 Buy.
+//10	Contraband	    Prosperity	Treasure	    $5	Worth 3 Coin. +1 Buy. When you play this, the player to your left names a card. You can't buy that card this turn.
+//11	Counting House	Prosperity	Action	        $5	Look through your discard pile, reveal any number of Copper cards from it, and put them into your hand.
+//12	Mint	        Prosperity	Action	        $5	You may reveal a Treasure card from your hand. Gain a copy of it. -- When you buy this, trash all Treasures you have in play.
+//13	Mountebank	    Prosperity	Action - Attack	$5	+2 Coin. Each other player may discard a Curse. If he doesn't, he gains a Curse and a Copper.
+//14	Rabble	        Prosperity	Action - Attack	$5	+3 Cards. Each other player reveals the top 3 cards of his deck, discards the revealed Actions and Treasures, and puts the rest back on top in any order he chooses.
+//15	Royal Seal	    Prosperity	Treasure	    $5	Worth 2 Coin. While this is in play, when you gain a card, you may put that card on top of your deck.
+//16	Vault	        Prosperity	Action	        $5	+2 Cards. Discard any number of cards. +1 Coin per card discarded. Each other player may discard 2 cards. If he does, he draws a card.
+//17	Venture	        Prosperity	Treasure	    $5	Worth 1 Coin. When you play this, reveal cards from your deck until you reveal a Treasure. Discard the other cards. Play that Treasure.
+//18	Goons	        Prosperity	Action - Attack	$6	+1 Buy, +2 Coin. Each other player discards down to 3 cards in hand. While this is in play, when you buy a card, +1 VP token.
+//19	Grand Market	Prosperity	Action	        $6	+1 Card, +1 Action, +1 Buy, +2 Coin. -- You can't buy this if you have any Copper in play.
+//20	Hoard	        Prosperity	Treasure	    $6	Worth 2 Coin. While this is in play, when you buy a Victory card, gain a Gold.
+//21	Bank	        Prosperity	Treasure	    $7	Worth ? Coin. When you play this, it`s worth 1 Coin per Treasure card you have in play (counting this).
+//22	Expand	        Prosperity	Action	        $7	Trash a card from your hand. Gain a card costing up to 3 Coin more than the trashed card.
+//23	Forge	        Prosperity	Action	        $7	Trash any number of cards from your hand. Gain a card with cost exactly equal to the total cost in coins of the trashed cards.
+//24	King's Court	Prosperity	Action	        $7	You may choose an Action card in your hand. Play it three times.
+//25	Peddler	        Prosperity	Action	        $8	+1 Card, +1 Action, +1 Coin -- During your Buy phase, this costs 2 Coin less per Action card you have in play, but not less than 0 Coin.
+//26	Platinum	    Prosperity	Treasure	    $9	Worth 5 Coins.
+//27	Colony	        Prosperity	Victory	        $11	10 VP.
 
 exports.cards = dom.cards;
 exports.card = dom.card;
