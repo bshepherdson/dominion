@@ -2123,6 +2123,22 @@ dom.cards['Upgrade'] = new dom.card('Upgrade', { 'Action': 1 }, 5, '+1 Card, +1 
 ]);
 
 
+dom.cards['Harem'] = new dom.card('Harem', { 'Treasure': 1, 'Victory': 1 }, 6, '2 Coin. 2 VP.', []);
+
+dom.cards['Nobles'] = new dom.card('Nobles', { 'Action': 1, 'Victory': 1 }, 6, '2 VP. Choose one: +3 Cards, or +2 Actions.', [
+    function(p, c) {
+        var opts = [new dom.Option('cards', '+3 Cards'), new dom.Option('actions', '+2 Actions')];
+        var dec = new dom.Decision(p, opts, 'Choose one option for your Nobles.', []);
+        p.game_.decision(dec, function(key) {
+            if(key == 'cards') {
+                rules.plusCards(3)(p, c);
+            } else {
+                rules.plusActions(2)(p, c);
+            }
+        });
+    }
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
@@ -2196,6 +2212,33 @@ dom.cards.drawKingdom = function() {
         dom.cards['Tactician'],
         dom.cards['Treasury'],
         dom.cards['Wharf'],
+
+        // Intrigue
+        dom.cards['Courtyard'],
+        dom.cards['Pawn'],
+        dom.cards['Secret Chamber'],
+        dom.cards['Great Hall'],
+        dom.cards['Masquerade'],
+        dom.cards['Shanty Town'],
+        dom.cards['Steward'],
+        dom.cards['Swindler'],
+        dom.cards['Wishing Well'],
+        dom.cards['Baron'],
+        dom.cards['Bridge'],
+        dom.cards['Conspirator'],
+        dom.cards['Coppersmith'],
+        dom.cards['Ironworks'],
+        dom.cards['Mining Village'],
+        dom.cards['Scout'],
+        dom.cards['Duke'],
+        dom.cards['Minion'],
+        dom.cards['Saboteur'],
+        dom.cards['Torturer'],
+        dom.cards['Trading Post'],
+        dom.cards['Tribute'],
+        dom.cards['Upgrade'],
+        dom.cards['Harem'],
+        dom.cards['Nobles'],
 	];
 
 	var drawn = [];
@@ -2230,7 +2273,8 @@ dom.cards.drawKingdom = function() {
 dom.cards.treasureValues = {
 	'Gold': 3,
 	'Silver': 2,
-	'Copper': 1
+	'Copper': 1,
+    'Harem': 2,
 };
 
 dom.cards.victoryValues = {
@@ -2238,7 +2282,9 @@ dom.cards.victoryValues = {
 	'Duchy': 3,
 	'Province': 6,
 	'Island': 2,
-    'Great Hall': 1
+    'Great Hall': 1,
+    'Nobles': 2,
+    'Harem': 2,
 };
 
 dom.cards.cardCount = function(card, players) {

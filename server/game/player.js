@@ -414,10 +414,11 @@ dom.player.prototype.calculateScore = function() {
 				gardens++;
             } else if(card.name == 'Duke') {
                 dukes++;
-            } else if(card.name == 'Duchy') {
-                duchies++;
 			} else if(card.types['Victory']) {
 				score += dom.cards.victoryValues[card.name];
+                if(card.name == 'Duchy') {
+                    duchies++;
+                }
 			} else if(card.types['Curse']) {
 				score--;
 			}
