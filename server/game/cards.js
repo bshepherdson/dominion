@@ -2304,7 +2304,44 @@ dom.cards['City'] = new dom.card('City', { 'Action': 1 }, 5, '+1 Card, +2 Action
 ]);
 
 
-//10	Contraband	    Prosperity	Treasure	    $5	Worth 3 Coin. +1 Buy. When you play this, the player to your left names a card. You can't buy that card this turn.
+dom.cards['Contraband'] = new dom.card('Contraband', { 'Treasure': 1 }, 5, 'Worth 3 Coin. +1 Buy. When you play this, the player to your left names a card. You can\'t buy that card this turn.', [
+    rules.plusBuys(1),
+    function(p, c) {
+        var otherIndex = p.game_.players.length - 1;
+        for(var i = 0; i < p.game_.players.length; i++) {
+            if(p.game_.players[i].id_ == p.id_) {
+                break;
+            }
+            otherIndex = i;
+        }
+        var o = p.game_.players[otherIndex];
+
+        // all cards in the kingdom that are not empty piles and are not already Contrabanded.
+        var kingdomCards = p.game_.kingdom
+                            .filter(function(k){ return k.count > 0; })
+                            .map(function(k) { return k.card; })
+                            .filter(function(c) {
+                                for(var i = 0; i < p.temp['Contraband cards'].length; i++) {
+                                    if(p.temp['Contraband cards'][i].name == c.name) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            });
+
+        var opts = dom.utils.cardsToOptions(kingdomCards);
+        var dec = new dom.Decision(o, opts, 'Choose a card that ' + p.name + ' can\'t buy this turn.', []);
+        p.game_.decision(dec, dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+            var kingdomIndex = p.game_.indexInKingdom(kingdomCards[index].name);
+            var card = p.game_.kingdom[kingdomIndex].card;
+            p.temp['Contraband cards'].push(card);
+            o.logMe('prevents ' + p.name + ' from buying ' + card.name + ' this turn.');
+            c();
+        }, c));
+    }
+]);
+
+
 //11	Counting House	Prosperity	Action	        $5	Look through your discard pile, reveal any number of Copper cards from it, and put them into your hand.
 //12	Mint	        Prosperity	Action	        $5	You may reveal a Treasure card from your hand. Gain a copy of it. -- When you buy this, trash all Treasures you have in play.
 //13	Mountebank	    Prosperity	Action - Attack	$5	+2 Coin. Each other player may discard a Curse. If he doesn't, he gains a Curse and a Copper.
@@ -2451,6 +2488,7 @@ dom.cards.treasureValues = {
     'Loan': 1,
     'Quarry': 1,
     'Talisman': 1,
+    'Contraband': 3,
 };
 
 dom.cards.basicCoins = {

@@ -39,6 +39,8 @@ dom.player = function(game, client, name) {
 	// used as a scratchpad to store things between callbacks
 	this.temp = {};
 	this.temp['gainedLastTurn'] = [];
+    this.temp['Contraband cards'] = [];
+
     this.vpTokens = 0;
 	// used for the async rules handling
 	this.rules_ = [];
@@ -222,10 +224,27 @@ dom.player.prototype.turnBuyPhase = function() {
 	var p = this;
 
     var gainCard = function() {
-        dom.utils.gainCardDecision(p, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
+        var info = [
             'Buys: ' + p.buys,
             'Coin: ' + p.coin
-        ], function(card) { return p.game_.cardCost(card) <= p.coin; },
+        ];
+
+        if(p.temp['Contraband cards'].length) {
+            info.push('Contraband: ' + dom.utils.showCards(p.temp['Contraband cards']));
+        }
+
+        dom.utils.gainCardDecision(p, 'Buy cards or end your turn.', 'Done buying. End your turn.', info, function(card) {
+            if(p.game_.cardCost(card) > p.coin) {
+                return false;
+            }
+
+            for(var i = 0; i < p.temp['Contraband cards'].length; i++) {
+                if(p.temp['Contraband cards'][i].name == card.name) {
+                    return false;
+                }
+            }
+            return true;
+        },
         function(repeat) {
             return dom.utils.decisionHelper(
                 function() { p.turnCleanupPhase(); },
@@ -337,6 +356,7 @@ dom.player.prototype.turnCleanupPhase = function() {
     this.game_.bridges = 0;
     this.game_.coppersmiths = 0;
     this.game_.quarries = 0;
+    this.temp['Contraband cards'] = [];
 	
 	// move old Duration cards to discard pile
 	for(var i = 0; i < this.duration_.length; i++) {
