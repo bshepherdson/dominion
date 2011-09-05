@@ -2021,7 +2021,38 @@ dom.cards['Torturer'] = new dom.card('Torturer', { 'Action': 1, 'Attack': 1 }, 5
 ]);
 
 
-//21    Trading Post    Intrigue	Action	        $5	Trash 2 cards from your hand. If you do, gain a silver card; put it into your hand.
+dom.cards['Trading Post'] = new dom.card('Trading Post', { 'Action': 1 }, 5, 'Trash 2 cards from your hand. If you do, gain a Silver card; put it into your hand.', [
+    function(p, c) {
+        var repeat = function(count) {
+            if(count > 1) {
+                var bought = p.buyCard(p.game_.indexInKingdom('Silver'), true);
+                if(bought) {
+                    p.logMe('puts the Silver in his hand.');
+                    p.hand_.push(p.discards_.pop());
+                }
+                c();
+                return;
+            }
+
+            if(!p.hand_.length) {
+                p.logMe('has run out of cards in hand.');
+                c();
+                return;
+            }
+
+            dom.utils.handDecision(p, 'Choose the ' + (count ? 'second card' : 'first of two cards') + ' to trash.', null, dom.utils.const(true), function(index) {
+                var card = p.hand_[index];
+                p.removeFromHand(index);
+                p.logMe('trashes ' + card.name + '.');
+                repeat(count+1);
+            }, dom.utils.nullFunction);
+        };
+
+        repeat(0);
+    }
+]);
+
+
 //22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
 //23    Upgrade         Intrigue	Action	        $5	+1 Card, +1 Action, Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.
 

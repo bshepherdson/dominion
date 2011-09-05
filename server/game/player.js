@@ -224,12 +224,13 @@ dom.player.prototype.turnBuyPhase = function() {
 
 /** @param {number} index Index into the kingdom.
  *  @param {boolean} free Whether the purchase is free (in terms of Buys and Coin) or not.
+ *  @return {boolean} True if the purchase was successful.
  */
 dom.player.prototype.buyCard = function(index, free) {
 	var inKingdom = this.game_.kingdom[index];
 	if(inKingdom.count <= 0) {
 		this.logMe('fails to ' + (free ? 'gain' : 'buy') + ' ' + inKingdom.card.name + ' because the Supply pile is empty.');
-		return;
+		return false;
 	}
 
 	this.discards_.push(inKingdom.card);
@@ -255,6 +256,8 @@ dom.player.prototype.buyCard = function(index, free) {
 			}
 		}
 	}
+
+    return true;
 };
 
 
