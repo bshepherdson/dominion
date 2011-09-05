@@ -1200,6 +1200,7 @@ dom.cards['Pirate Ship'] = new dom.card('Pirate Ship', { 'Action': 1, 'Attack': 
                     if(!drawn) {
                         o.logMe('has no cards to draw.');
                         c();
+                        return;
                     }
 
                     var cards = [];
@@ -1491,7 +1492,7 @@ dom.cards['Courtyard'] = new dom.card('Courtyard', { 'Action': 1 }, 2, '+3 Cards
                 }
             }
             p.hand_ = newhand;
-            p.logMe('puts a card on top of his card.');
+            p.logMe('puts a card on top of his deck.');
             c();
         }, dom.utils.nullFunction));
     }
@@ -1978,7 +1979,7 @@ dom.cards['Torturer'] = new dom.card('Torturer', { 'Action': 1, 'Attack': 1 }, 5
     rules.plusCards(3),
     rules.everyOtherPlayer(false, true, function(p, o, c) {
         var opts = [new dom.Option('discard', 'Discard 2 cards.'), new dom.Option('curse', 'Gain a Curse.')];
-        var dec = new dom.Decision(o, opts, 'Choose what to do for Torturer.', []);
+        var dec = new dom.Decision(o, opts, 'Choose what to do for Torturer.', ['Hand: ' + dom.utils.showCards(o.hand_)]);
         p.game_.decision(dec, function(key) {
             if(key == 'curse') {
                 o.buyCard(p.game_.indexInKingdom('Curse'), true);

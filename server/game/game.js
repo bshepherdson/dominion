@@ -136,10 +136,17 @@ dom.game.prototype.endGame = function() {
 
 	var scores = [];
 	for(var i = 0; i < this.players.length; i++) {
-		scores.push({ name: this.players[i].name, score: this.players[i].calculateScore() });
+		scores.push({ name: this.players[i].name, score: this.players[i].calculateScore(), turns: this.players[i].turn_ });
 	}
 
-	scores.sort(function(a,b) { return b.score - a.score });
+	scores.sort(function(a,b) {
+        var diff = b.score - a.score;
+        if(diff == 0) {
+            return b.turn_ - a.turn_;
+        } else {
+            return diff;
+        }
+    });
 
 	var msg = { game_over: scores };
 

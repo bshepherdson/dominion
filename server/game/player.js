@@ -14,6 +14,8 @@ dom.player = function(game, client, name) {
 	this.id_ = playerCount++;
 	this.name = name;
 
+    this.turn_ = 1;
+
 	this.discards_ = dom.cards.starterDeck(); // start them in the discards
 	this.deck_ = [];                          // and an empty deck
 	this.inPlay_ = [];
@@ -63,7 +65,7 @@ dom.player.prototype.turnStart = function() {
         this.temp['Outpost active'] = false;
         this.temp['Outpost turns']++;
     } else {
-        this.logMe('starts turn.');
+        this.logMe('starts turn ' + this.turn_ + '.');
     }
 
 	for(var i = 0; i < this.durationRules.length; i++) {
@@ -344,6 +346,7 @@ dom.player.prototype.turnEnd = function() {
         this.turnStart();
     } else {
         this.phase_ = dom.player.TurnPhases.NOT_PLAYING;
+        this.turn_++;
         this.game_.nextPlayer();
     }
 };
@@ -355,6 +358,7 @@ dom.player.prototype.draw = function(opt_n) {
 	var drawn = 0;
 	for(var i = 0; i < n; i++) {
 		if(this.deck_.length == 0) {
+            this.logMe('reshuffles.');
 			this.shuffleDiscards_();
 		}
 

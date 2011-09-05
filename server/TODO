@@ -11,4 +11,4 @@
     - Should be disabled now. Still not working on my Android.
 
 - Need to process "every other player" rules clockwise, rather than from 0.
-- Torturer choice needs to show what cards are in your hand.
+- better UX while waiting for another player's decision, akin to the turn_over message.
