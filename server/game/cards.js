@@ -290,9 +290,9 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 // - the player object keeps track of the turn state: working its way through the rules on each card, the phases of the turn and so on.
 
 // first the common cards
-dom.cards['Gold']   = new dom.card('Gold',   { 'Treasure': 1 }, 6, '', rules.plusCoin(3));
-dom.cards['Silver'] = new dom.card('Silver', { 'Treasure': 1 }, 3, '', rules.plusCoin(2));
-dom.cards['Copper'] = new dom.card('Copper', { 'Treasure': 1 }, 0, '', rules.plusCoin(1));
+dom.cards['Gold']   = new dom.card('Gold',   { 'Treasure': 1 }, 6, '', []);
+dom.cards['Silver'] = new dom.card('Silver', { 'Treasure': 1 }, 3, '', []);
+dom.cards['Copper'] = new dom.card('Copper', { 'Treasure': 1 }, 0, '', []);
 
 dom.cards['Province'] = new dom.card('Province', { 'Victory': 1 }, 8, '', rules.nullRule);
 dom.cards['Duchy']    = new dom.card('Duchy',    { 'Victory': 1 }, 5, '', rules.nullRule);
@@ -2261,7 +2261,15 @@ dom.cards['Monument'] = new dom.card('Monument', { 'Action': 1 }, 4, '+2 Coin, +
 ]);
 
 
-//6	    Quarry	        Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, Action cards cost 2 Coin less, but not less than 0 Coin.
+dom.cards['Quarry'] = new dom.card('Quarry', { 'Treasure': 1 }, 4, 'Worth 1 Coin. While this is in play, Action cards cost 2 Coin less, but not less than 0 Coin.', [
+    function(p, c) {
+        p.game_.quarries++;
+        p.game_.log('All Action cards cost 2 Coin less this turn.');
+        c();
+    }
+]);
+
+
 //7	    Talisman	    Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.
 //8	    Worker's VillageProsperity	Action	        $4	+1 Card, +2 Actions, +1 Buy.
 
@@ -2401,6 +2409,7 @@ dom.cards.treasureValues = {
 	'Copper': 1,
     'Harem': 2,
     'Loan': 1,
+    'Quarry': 1,
 };
 
 dom.cards.basicCoins = {

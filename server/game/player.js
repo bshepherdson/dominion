@@ -329,6 +329,7 @@ dom.player.prototype.turnCleanupPhase = function() {
     // reset game state values
     this.game_.bridges = 0;
     this.game_.coppersmiths = 0;
+    this.game_.quarries = 0;
 	
 	// move old Duration cards to discard pile
 	for(var i = 0; i < this.duration_.length; i++) {

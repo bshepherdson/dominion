@@ -19,6 +19,7 @@ dom.game = function(host) {
     this.bridges = 0;
     this.coppersmiths = 0;
     this.tradeRouteLive = false;
+    this.quarries = 0;
 };
 
 
@@ -204,6 +205,11 @@ dom.game.prototype.logPlayer = function(str, p) {
 // Given a card object, calculates its cost with the current bridge level.
 dom.game.prototype.cardCost = function(card) {
     var cost = card.cost - this.bridges;
+
+    if(card.types['Action']) {
+        cost -= 2 * this.quarries;
+    }
+
     return cost < 0 ? 0 : cost;
 };
 
