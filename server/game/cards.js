@@ -235,6 +235,7 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
                     var savedBy = o.safeFromAttack();
                     if(isAttack && savedBy) {
                         o.logMe('is protected by ' + savedBy + '.');
+                        repeat(index+1);
                     } else {
                         f(p, o, function() {
                             actionComplete = true;
