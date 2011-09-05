@@ -2342,7 +2342,25 @@ dom.cards['Contraband'] = new dom.card('Contraband', { 'Treasure': 1 }, 5, 'Wort
 ]);
 
 
-//11	Counting House	Prosperity	Action	        $5	Look through your discard pile, reveal any number of Copper cards from it, and put them into your hand.
+dom.cards['Counting House'] = new dom.card('Counting House', { 'Action': 1 }, 5, 'Look through your discard pile, reveal any number of Copper cards from it, and put them into your hand.', [
+    function(p, c) {
+        var coppers = [];
+        var other = [];
+        for(var i = 0; i < p.discards_.length; i++) {
+            if(p.discards_[i].name == 'Copper'){
+                coppers.push(p.discards_[i]);
+            } else {
+                other.push(p.discards_[i]);
+            }
+        }
+        p.logMe('puts ' + coppers.length + ' Coppers into his hand.');
+        p.discards_ = other;
+        dom.utils.append(p.hand_, coppers);
+        c();
+    }
+]);
+
+
 //12	Mint	        Prosperity	Action	        $5	You may reveal a Treasure card from your hand. Gain a copy of it. -- When you buy this, trash all Treasures you have in play.
 //13	Mountebank	    Prosperity	Action - Attack	$5	+2 Coin. Each other player may discard a Curse. If he doesn't, he gains a Curse and a Copper.
 //14	Rabble	        Prosperity	Action - Attack	$5	+3 Cards. Each other player reveals the top 3 cards of his deck, discards the revealed Actions and Treasures, and puts the rest back on top in any order he chooses.
