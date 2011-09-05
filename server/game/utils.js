@@ -78,7 +78,9 @@ exports.gainCardDecision = function(p, message, done, info, cardPred, decisionFu
 				') ' + card.name));
 		}
 	}
-	options.push(new dom.Option('done', done));
+    if(done) {
+        options.push(new dom.Option('done', done));
+    }
 	var dec = new dom.Decision(p, options, message, info);
 
 	var repeat = function() {

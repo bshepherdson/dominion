@@ -2088,12 +2088,44 @@ dom.cards['Tribute'] = new dom.card('Tribute', { 'Action': 1 }, 5, 'The player t
     }
 ]);
 
-//22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
-//23    Upgrade         Intrigue	Action	        $5	+1 Card, +1 Action, Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.
+
+dom.cards['Upgrade'] = new dom.card('Upgrade', { 'Action': 1 }, 5, '+1 Card, +1 Action. Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.', [
+    rules.plusCards(1),
+    rules.plusActions(1),
+    function(p, c) {
+        dom.utils.handDecision(p, 'Choose a card to trash.', null, dom.utils.const(true), function(index) {
+            var card = p.hand_[index];
+            p.removeFromHand(index);
+            p.logMe('trashes ' + card.name + '.');
+
+            var exactCost = p.game_.cardCost(card) + 1;
+
+            var eligible = p.game_.kingdom
+                            .filter(function(c) { return c.count > 0; })
+                            .map(function(c) { return c.card; })
+                            .filter(function(c) { return p.game_.cardCost(c) == exactCost; });
+
+            if(!eligible.length) {
+                p.logMe('gains nothing; there are no cards that cost exactly ' + exactCost + '.');
+                c();
+                return;
+            }
+            
+            dom.utils.gainCardDecision(p, 'Gain a card costing exactly ' + exactCost + ' Coin.', null, [], function(c) { return p.game_.cardCost(c) == exactCost; }, function(repeat) {
+                return dom.utils.decisionHelper(dom.utils.nullFunction, function(index) {
+                    p.buyCard(index, true);
+                    c();
+                }, repeat);
+            });
+
+        }, dom.utils.nullFunction);
+    }
+]);
+
+
 
 dom.cards.starterDeck = function() {
 	return [
-        dom.cards['Tribute'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
