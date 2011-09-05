@@ -39,6 +39,7 @@ dom.player = function(game, client, name) {
 	// used as a scratchpad to store things between callbacks
 	this.temp = {};
 	this.temp['gainedLastTurn'] = [];
+    this.vpTokens = 0;
 	// used for the async rules handling
 	this.rules_ = [];
 	this.durationRules = [];
@@ -497,6 +498,7 @@ dom.player.prototype.calculateScore = function() {
 
 	score += gardens * Math.floor(cards/10);
     score += duchies * dukes; // 1 point per Duke per Duchy
+    score += this.vpTokens;
 
 	console.log('Score for Player ' + this.id_ + ' = ' + score);
 

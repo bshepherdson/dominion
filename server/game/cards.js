@@ -71,6 +71,15 @@ rules.plusCards = function(amount) {
 		if(c) c();
 	};
 };
+
+rules.plusVP = function(amount){
+    return function(p, c) {
+        p.vpTokens += amount;
+        p.logMe('gains +' + amount + ' VP token' + (amount > 1 ? 's' : '') + '.');
+        if(c) c();
+    };
+};
+
 rules.nullRule = function(p, c) { c(); };
 
 
@@ -2214,6 +2223,43 @@ dom.cards['Watchtower'] = new dom.card('Watchtower', { 'Action': 1, 'Reaction': 
 ]);
 */
 
+
+dom.cards['Bishop'] = new dom.card('Bishop', { 'Action': 1 }, 4, '+1 Coin. +1 VP token. Trash a card from your hand. +VP tokens equal to half its cost in coins, rounded down. Each other player may trash a card from his hand.', [
+    rules.plusCoin(1),
+    rules.plusVP(1),
+    function(p, c) {
+        dom.utils.handDecision(p, 'Trash a card for Bishop.', null, dom.utils.const(true), function(index) {
+            var card = p.hand_[index];
+            p.removeFromHand(index);
+            p.logMe('trashes ' + card.name);
+
+            var cost = p.game_.cardCost(card);
+            var tokens = Math.floor(cost/2);
+
+            if(tokens) {
+                rules.plusVP(tokens)(p, c);
+            } else {
+                p.logMe('gains no VP tokens.');
+                c();
+            }
+        }, dom.utils.nullFunction);
+    },
+    rules.everyOtherPlayer(true, false, function(p, o, c) {
+        dom.utils.handDecision(o, 'You may trash a card for ' + p.name + '\'s Bishop.', 'Don\'t trash.', dom.utils.const(true), function(index) {
+            var card = o.hand_[index];
+            o.removeFromHand(index);
+            o.logMe('trashes ' + card.name);
+            c();
+        }, c);
+    })
+]);
+
+
+
+//5	    Monument	    Prosperity	Action	        $4	+2 Coin; +1 VP token.
+//6	    Quarry	        Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, Action cards cost 2 Coin less, but not less than 0 Coin.
+//7	    Talisman	    Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.
+//8	    Worker's VillageProsperity	Action	        $4	+1 Card, +2 Actions, +1 Buy.
 
 dom.cards.starterDeck = function() {
 	return [
