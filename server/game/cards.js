@@ -1537,7 +1537,7 @@ dom.cards['Pawn'] = new dom.card('Pawn', { 'Action': 1 }, 2, 'Choose two: +1 Car
                     }
                 }
 
-                var dec2 = new dom.Decision(p, newopts, 'Choose the second effect of Pawn.', ['Hand: ' + dom.utils.showCards(p.hand_)]);
+                var dec2 = new dom.Decision(p, newopts, 'Choose the second effect of Pawn.', []);
                 p.game_.decision(dec2, handler(2));
             };
         };
@@ -1656,7 +1656,7 @@ dom.cards['Steward'] = new dom.card('Steward', { 'Action': 1 }, 3, 'Choose one: 
         var opts = [new dom.Option('cards', '+2 Cards'),
                     new dom.Option('coins', '+2 Coin'),
                     new dom.Option('trash', 'Trash 2 cards from your hand.')];
-        var dec = new dom.Decision(p, opts, 'Choose one of the options for Steward.', ['Hand: ' + dom.utils.showCards(p.hand_)]);
+        var dec = new dom.Decision(p, opts, 'Choose one of the options for Steward.', []);
         p.game_.decision(dec, function(key) {
             if(key == 'cards') {
                 rules.plusCards(2)(p, c);
@@ -1699,7 +1699,7 @@ dom.cards['Swindler'] = new dom.card('Swindler', { 'Action': 1, 'Attack': 1 }, 3
         var replacements = p.game_.kingdom
                             .filter(function(x) { return x.count > 0; })
                             .map(function(x) { return x.card; })
-                            .filter(function(x) { return p.game_.cardCost(c) == cost; });
+                            .filter(function(x) { return p.game_.cardCost(x) == cost; });
 
         if(replacements.length == 0) {
             o.logMe(log + ', but there are no replacements.');
@@ -1980,7 +1980,7 @@ dom.cards['Torturer'] = new dom.card('Torturer', { 'Action': 1, 'Attack': 1 }, 5
     rules.plusCards(3),
     rules.everyOtherPlayer(false, true, function(p, o, c) {
         var opts = [new dom.Option('discard', 'Discard 2 cards.'), new dom.Option('curse', 'Gain a Curse.')];
-        var dec = new dom.Decision(o, opts, 'Choose what to do for Torturer.', ['Hand: ' + dom.utils.showCards(o.hand_)]);
+        var dec = new dom.Decision(o, opts, 'Choose what to do for Torturer.', []);
         p.game_.decision(dec, function(key) {
             if(key == 'curse') {
                 o.buyCard(p.game_.indexInKingdom('Curse'), true);
