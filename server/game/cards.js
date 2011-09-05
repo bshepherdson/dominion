@@ -2053,11 +2053,47 @@ dom.cards['Trading Post'] = new dom.card('Trading Post', { 'Action': 1 }, 5, 'Tr
 ]);
 
 
+dom.cards['Tribute'] = new dom.card('Tribute', { 'Action': 1 }, 5, 'The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an: Action card, +2 Actions; Treasure card, +2 Coin; Victory card, +2 Cards.', [
+    function(p, c) {
+        var leftIndex = p.game_.players.length - 1;
+        for(var i = 1; i < p.game_.players.length; i++) { // yes, starting at 1
+            leftIndex = i-1;
+            if(p.game_.players[i].id_ == p.id_) {
+                break;
+            }
+        }
+        var o = p.game_.players[leftIndex];
+
+        var drawn = o.draw(2);
+        var cards = [];
+        for(var i = 0; i < drawn; i++) {
+            cards.push(o.hand_.pop());
+        }
+
+        o.logMe('reveals ' + dom.utils.showCards(cards));
+        var uniq = cards.unique(function(x,y) { return x.name == y.name; });
+
+        for(var i = 0; i < uniq.length; i++) {
+            if(uniq[i].types['Action']) {
+                rules.plusActions(2)(p, dom.utils.nullFunction);
+            }
+            if(uniq[i].types['Treasure']) {
+                rules.plusCoin(2)(p, dom.utils.nullFunction);
+            }
+            if(uniq[i].types['Victory']) {
+                rules.plusCards(2)(p, dom.utils.nullFunction);
+            }
+        }
+        c();
+    }
+]);
+
 //22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
 //23    Upgrade         Intrigue	Action	        $5	+1 Card, +1 Action, Trash a card from your hand. Gain a card costing exactly 1 Coin more than it.
 
 dom.cards.starterDeck = function() {
 	return [
+        dom.cards['Tribute'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
 		dom.cards['Copper'],
