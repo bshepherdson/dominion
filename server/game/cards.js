@@ -120,31 +120,6 @@ rules.gainCard = function(name, f) {
 	};
 };
 
-/**
- * @param {number} times The maximum number of times to repeat this function.
- * @param {string} message The message displayed for each Decision.
- * @param {string} done The 'done' message.
- * @param {function} getOpts A function taking a player and returning an array of options.
- * @param {function} f The function taking a player object and index called when a non-done decision is made.
- */
-rules.repeatUpTo = function(times, message, done, getOpts, f) {
-	var internal = function(n, p, c) {
-		if(n <= 0) c(); // end
-
-		var opts = getOpts(p);
-		opts.push(new dom.Option('done', done));
-		var dec = new dom.Decision(p, opts, message, []);
-		p.game_.decision(dec, dom.utils.decisionHelper(
-			function() { c(); },
-			function(index) { f(p, index); internal(n-1, p,c); },
-			function() { internal(n, p, c); }
-		));
-	};
-
-	return dom.utils.bind(internal, null, times);
-};
-
-
 rules.yesNo = function(message, yes, no) {
 	return function(p, c) {
 		var opts = [
@@ -326,14 +301,25 @@ dom.cards['Cellar'] = new dom.card('Cellar', { 'Action': 1 }, 2, '+1 Action. Dis
 ]);
 
 dom.cards['Chapel'] = new dom.card('Chapel', { 'Action': 1 }, 2, 'Trash up to 4 cards from your hand.', [
-	rules.repeatUpTo(4, 'Choose a card to trash.', 'Done trashing', function(p) {
-		return dom.utils.cardsToOptions(p.hand_);
-	}, function(p, index) {
-		var card = p.hand_[index];
-		p.logMe('trashes ' + card.name + '.');
-		p.removeFromHand(index); // remove it and don't put it anywhere
-	})
+    function(p, c) {
+        var repeat = function(count) {
+            if(count >= 4) {
+                c();
+                return;
+            }
+
+            dom.utils.handDecision(p, 'Choose a card to trash.', 'Done trashing', dom.utils.const(true), function(index) {
+                var card = p.hand_[index];
+                p.logMe('trashes ' + card.name + '.');
+                p.removeFromHand(index);
+                repeat(count+1);
+            }, c);
+        };
+
+        repeat(0);
+    }
 ]);
+
 
 dom.cards['Chancellor'] = new dom.card('Chancellor', { 'Action': 1}, 3, '+2 Coins. You may immediately put your deck into your discard pile.', [
 	rules.plusCoin(2),
