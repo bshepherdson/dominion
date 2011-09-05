@@ -1124,7 +1124,7 @@ dom.cards['Island'] = new dom.card('Island', { 'Action': 1, 'Victory': 1 }, 4, '
 				p.temp.islandSetAside.push(card);
 
 				// and the Island too, if it wasn't Throme Room'd or whatever.
-				if(p.inPlay_.length > 0 && p.inPlay_[p.inPlay_.length-1].name != 'Island') {
+				if(p.inPlay_.length > 0 && p.inPlay_[p.inPlay_.length-1].name == 'Island') {
 					p.temp.islandSetAside.push(p.inPlay_.pop());
 				}
 
@@ -1765,6 +1765,7 @@ dom.cards['Baron'] = new dom.card('Baron', { 'Action': 1 }, 4, '+1 Buy. You may 
 
         if(estateIndex < 0) {
             p.buyCard(p.game_.indexInKingdom('Estate'), true);
+            c();
         } else {
             var yn = rules.yesNo('Discard an Estate for Baron?', function(p, c) {
                 var card = p.hand_[estateIndex];

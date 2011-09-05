@@ -1,6 +1,5 @@
 
 var dom = {};
-dom.utils = require('./utils');
 
 var nextId = 0;
 
@@ -14,7 +13,7 @@ dom.Decision = function(player, options, message, info) {
 		this.info.push('Native Village mat: ' + player.temp['Native Village mat'].map(function(c) { return c.name; }).join(', ') );
 	}
 
-    this.info.push('Hand: ' + dom.utils.showCards(player.hand_));
+    this.info.push('Hand: ' + player.hand_.map(function(x) { return x.name; }).join(', '));
 
 	this.id = nextId++;
 };
