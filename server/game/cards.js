@@ -2273,7 +2273,12 @@ dom.cards['Quarry'] = new dom.card('Quarry', { 'Treasure': 1 }, 4, 'Worth 1 Coin
 dom.cards['Talisman'] = new dom.card('Talisman', { 'Treasure': 1 }, 4, 'Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.', []);
 
 
-//8	    Worker's VillageProsperity	Action	        $4	+1 Card, +2 Actions, +1 Buy.
+dom.cards['Worker\'s Village'] = new dom.card('Worker\'s Village', { 'Action': 1 }, 4, '+1 Card, +2 Actions, +1 Buy.', [
+    rules.plusCards(1),
+    rules.plusActions(2),
+    rules.plusBuys(1)
+]);
+
 
 dom.cards.starterDeck = function() {
 	return [
