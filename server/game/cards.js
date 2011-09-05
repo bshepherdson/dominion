@@ -1955,7 +1955,38 @@ dom.cards['Minion'] = new dom.card('Minion', { 'Action': 1, 'Attack': 1 }, 5, '+
 ]);
 
 
-//19    Saboteur        Intrigue	Action - Attack	$5	Each other player reveals cards from the top of his deck until revealing one costing 3 Coins or more. He trashes that card and may gain a card costing at most 2 Coins less than it. He discards the other revealed cards.
+dom.cards['Saboteur'] = new dom.card('Saboteur', { 'Action': 1, 'Attack': 1 }, 5, 'Each other player reveals cards from the top of his deck until revealing one costing 3 Coin or more. He trashes that card and may gain a card costing at most 2 Coin less than it. He discards the other revealed cards.', [
+    rules.everyOtherPlayer(false, true, function(p, o, c) {
+        var repeat = function(revealed) {
+            var drawn = o.draw();
+            if(!drawn) {
+                o.logMe('has drawn his whole deck and has no cards costing 3 Coin or more.');
+                dom.utils.append(o.discards_, revealed);
+                c();
+                return;
+            }
+
+            var card = o.hand_.pop();
+            o.logMe('reveals ' + card.name + ' (' + p.game_.cardCost(card) + ').');
+            if(p.game_.cardCost(card) >= 3) {
+                o.logMe('trashes ' + card.name + '.');
+                dom.utils.append(o.discards_, revealed);
+                dom.utils.gainCardDecision(o, 'Choose a card to replace your ' + card.name + '.', 'Gain nothing.', [], function(c) { return p.game_.cardCost(c) <= p.game_.cardCost(card) - 2; }, function(repeat) {
+                    return dom.utils.decisionHelper(c, function(index) {
+                        o.buyCard(index, true);
+                        c();
+                    }, repeat);
+                });
+            } else {
+                revealed.push(card);
+                repeat(revealed);
+            }
+        };
+
+        repeat([]);
+    })
+]);
+
 //20    Torturer        Intrigue	Action - Attack	$5	+3 Card, Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand.
 //21    Trading Post    Intrigue	Action	        $5	Trash 2 cards from your hand. If you do, gain a silver card; put it into your hand.
 //22    Tribute         Intrigue	Action	        $5	The player to your left reveals then discards the top 2 cards of his deck. For each differently named card revealed, if it is an... Action Card, +2 Actions; Treasure Card, +2 Coins; Victory Card, +2 Cards.
