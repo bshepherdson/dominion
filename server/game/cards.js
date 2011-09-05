@@ -2280,6 +2280,39 @@ dom.cards['Worker\'s Village'] = new dom.card('Worker\'s Village', { 'Action': 1
 ]);
 
 
+dom.cards['City'] = new dom.card('City', { 'Action': 1 }, 5, '+1 Card, +2 Actions. If there are one or more empty Supply piles, +1 Card. If there are two or more, +1 Coin and +1 Buy.', [
+    rules.plusCards(1),
+    rules.plusActions(2),
+    function(p, c) {
+        var funcs = [];
+
+        var emptyPiles = p.game_.kingdom.filter(function(k) { return k.count == 0; });
+        if(emptyPiles.length >= 1) {
+            funcs.push(rules.plusCards(1));
+        }
+        if(emptyPiles.length >= 2) {
+            funcs.push(rules.plusCoin(1));
+            funcs.push(rules.plusBuys(1));
+        }
+
+        for(var i = 0; i < funcs.length; i++) {
+            funcs[i](p, dom.utils.nullFunction);
+        }
+
+        c();
+    }
+]);
+
+
+//10	Contraband	    Prosperity	Treasure	    $5	Worth 3 Coin. +1 Buy. When you play this, the player to your left names a card. You can't buy that card this turn.
+//11	Counting House	Prosperity	Action	        $5	Look through your discard pile, reveal any number of Copper cards from it, and put them into your hand.
+//12	Mint	        Prosperity	Action	        $5	You may reveal a Treasure card from your hand. Gain a copy of it. -- When you buy this, trash all Treasures you have in play.
+//13	Mountebank	    Prosperity	Action - Attack	$5	+2 Coin. Each other player may discard a Curse. If he doesn't, he gains a Curse and a Copper.
+//14	Rabble	        Prosperity	Action - Attack	$5	+3 Cards. Each other player reveals the top 3 cards of his deck, discards the revealed Actions and Treasures, and puts the rest back on top in any order he chooses.
+//15	Royal Seal	    Prosperity	Treasure	    $5	Worth 2 Coin. While this is in play, when you gain a card, you may put that card on top of your deck.
+//16	Vault	        Prosperity	Action	        $5	+2 Cards. Discard any number of cards. +1 Coin per card discarded. Each other player may discard 2 cards. If he does, he draws a card.
+//17	Venture	        Prosperity	Treasure	    $5	Worth 1 Coin. When you play this, reveal cards from your deck until you reveal a Treasure. Discard the other cards. Play that Treasure.
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
