@@ -428,7 +428,9 @@ dom.player.prototype.calculateScore = function() {
 	scoreArray(this.hand_);
 	scoreArray(this.deck_);
 	scoreArray(this.discards_);
-	scoreArray(this.temp.islandSetAside);
+    if(this.temp['islandSetAside']) {
+        scoreArray(this.temp.islandSetAside);
+    }
 
 	score += gardens * Math.floor(cards/10);
     score += duchies * dukes; // 1 point per Duke per Duchy

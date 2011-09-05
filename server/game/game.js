@@ -94,15 +94,18 @@ dom.game.prototype.nextPlayer = function() {
 	if(this.turn_ >= 0) { // not first turn
 		this.players[this.turn_].client.send({ turn_over: 1 });
 	}
-	this.sendToAll(this.showKingdom());
 
-	this.turn_++;
-	if(this.turn_ >= this.players.length) {
-		this.turn_ = 0;
-	}
-	this.players[this.turn_].turnStart();
+	var done = this.checkEndOfGame();
+    if(!done) {
+        this.sendToAll(this.showKingdom());
 
-	this.checkEndOfGame();
+        this.turn_++;
+        if(this.turn_ >= this.players.length) {
+            this.turn_ = 0;
+        }
+
+        this.players[this.turn_].turnStart();
+    }
 };
 
 dom.game.prototype.showKingdom = function() {
@@ -121,7 +124,10 @@ dom.game.prototype.checkEndOfGame = function() {
 
 	if(this.kingdom[ixProvince].count <= 0 || emptyPiles >= 3) {
 		this.endGame();
+        return true;
 	}
+
+    return false;
 };
 
 
@@ -130,7 +136,7 @@ dom.game.prototype.endGame = function() {
 
 	var scores = [];
 	for(var i = 0; i < this.players.length; i++) {
-		scores.push({ id: this.players[i].id_, score: this.players[i].calculateScore() });
+		scores.push({ name: this.players[i].name, score: this.players[i].calculateScore() });
 	}
 
 	scores.sort(function(a,b) { return b.score - a.score });

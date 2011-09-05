@@ -39,7 +39,7 @@
 		} else if ('game_over' in obj) {
 			var str = '';
 			for(var i = 0; i < obj.game_over.length; i++) {
-				str += '<p>Player ' + obj.game_over[i].id + ': ' + obj.game_over[i].score + ' points</p>';
+				str += '<p><strong>' + obj.game_over[i].name + ':</strong> ' + obj.game_over[i].score + ' points</p>';
 			}
 			$("#decision").html(str);
 		} else if ('kingdom' in obj) {
