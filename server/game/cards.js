@@ -184,7 +184,7 @@ rules.everyPlayer = function(includeMe, inParallel, isAttack, f) {
 			for(var i = 0; i < p.game_.players.length; i++) {
                 var wrapper = function() {
                     var o = p.game_.players[i];
-                    var reactions = o.hand_.filter(function(x) { return x.types['Reaction']; });
+                    var reactions = o.hand_.filter(function(x) { return x.name == 'Secret Chamber'; });
                     if(((includeMe && p.id_ == o.id_) || p.id_ != o.id_) && isAttack && reactions.length) {
                         reactionsOutstanding += reactions.length;
 
@@ -2191,7 +2191,29 @@ dom.cards['Trade Route'] = new dom.card('Trade Route', { 'Action': 1 }, 3, '+1 B
 ]);
 
 
-//3	    Watchtower	    Prosperity	Reaction	    $3	Draw until you have 6 cards in hand. -- When you gain a card, you may reveal this from your hand. If you do, either trash that card, or put it on top of your deck.
+/*
+dom.cards['Watchtower'] = new dom.card('Watchtower', { 'Action': 1, 'Reaction': 1 }, 3, 'Draw until you have 6 cards in hand. -- When you gain a card, you may reveal this from your hand. If you do, either trash that card, or put it on top of your deck.', [
+    function(p, c) {
+        var repeat = function() {
+            if(p.hand_.length >= 6) {
+                c();
+                return;
+            }
+
+            var drawn = p.draw();
+            if(!drawn) {
+                p.logMe('has no more cards to draw.');
+                c();
+                return;
+            }
+
+            repeat();
+        };
+        repeat();
+    }
+]);
+*/
+
 
 dom.cards.starterDeck = function() {
 	return [
