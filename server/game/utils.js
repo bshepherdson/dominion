@@ -115,7 +115,7 @@ exports.handDecision = function(p, message, done, cardPred, matchFunc, cont) {
 	if(done){
 		options.push(new dom.Option('done', done));
 	}
-	var dec = new dom.Decision(p, options, message, ['Hand: ' + handNames.join(', ')]);
+	var dec = new dom.Decision(p, options, message, []);
 
 	var repeat = function() {
 		p.game_.decision(dec, exports.decisionHelper(cont, matchFunc, repeat));

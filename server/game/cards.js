@@ -2129,6 +2129,48 @@ dom.cards['Nobles'] = new dom.card('Nobles', { 'Action': 1, 'Victory': 1 }, 6, '
 ]);
 
 
+// Prosperity cards
+dom.cards['Loan'] = new dom.card('Loan', { 'Treasure': 1 }, 3, 'Worth 1 Coin. When you play this, reveal cards from your deck until you reveal a Treasure. Discard it or trash it. Discard the other cards.', [
+    function(p, c) {
+        var repeat = function(revealed) {
+            var drawn = p.draw();
+            if(!drawn) {
+                p.logMe('has no cards left to draw.');
+                dom.utils.append(p.discards_, revealed);
+                c();
+                return;
+            }
+
+            var card = p.hand_.pop();
+            p.logMe('reveals ' + card.name +'.');
+            if(card.types['Treasure']) {
+                var opts = [new dom.Option('discard', 'Discard it.'), new dom.Option('trash', 'Trash it.')];
+                var dec = new dom.Decision(p, opts, 'You have revealed ' + card.name + '. Choose what to do with it.', ['Revealed: ' + dom.utils.showCards(revealed)]);
+                p.game_.decision(dec, function(key) {
+                    if(key == 'discard') {
+                        revealed.push(card);
+                        dom.utils.append(p.discards_, revealed);
+                        p.logMe('discards ' + card.name + '.');
+                        c();
+                    } else {
+                        dom.utils.append(p.discards_, revealed);
+                        p.logMe('trashes ' + card.name + '.');
+                        c();
+                    }
+                });
+            } else {
+                revealed.push(card);
+                repeat(revealed);
+            }
+        };
+
+        repeat([]);
+    }
+]);
+
+//2	    Trade Route	    Prosperity	Action	        $3	+1 Buy. +1 Coin per token on the Trade Route mat. Trash a card from your hand. -- Setup: Put a token on each Victory card Supply pile. When a card is gained from that pile, move the token to the Trade Route mat.
+//3	    Watchtower	    Prosperity	Reaction	    $3	Draw until you have 6 cards in hand. -- When you gain a card, you may reveal this from your hand. If you do, either trash that card, or put it on top of your deck.
+
 dom.cards.starterDeck = function() {
 	return [
 		dom.cards['Copper'],
@@ -2264,6 +2306,15 @@ dom.cards.treasureValues = {
 	'Silver': 2,
 	'Copper': 1,
     'Harem': 2,
+    'Loan': 1,
+};
+
+dom.cards.basicCoins = {
+    'Copper': 1,
+    'Silver': 1,
+    'Gold': 1,
+    'Platinum': 1,
+    'Harem': 1,
 };
 
 dom.cards.victoryValues = {

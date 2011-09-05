@@ -82,14 +82,9 @@ dom.player.prototype.turnStart = function() {
 
 
 dom.player.prototype.turnActionPhase = function() {
-	if(this.actions <= 0) {
-		this.logMe('has no Actions left.');
-		this.turnBuyPhase();
-		return;
-	}
-
 	var options = dom.utils.cardsToOptions(this.hand_);
 	options.push(new dom.Option('buy', 'Proceed to Buy phase'));
+	options.push(new dom.Option('coins', 'Play all basic coins and proceed to Buy phase.'));
 	var dec = new dom.Decision(this, options, 'Play an Action card or proceed to the Buy phase.', [
 		'Actions: ' + this.actions,
 		'Buys: ' + this.buys,
@@ -102,6 +97,12 @@ dom.player.prototype.turnActionPhase = function() {
 			this.turnBuyPhase();
 			return;
 		}
+        if(key == 'coins') {
+            this.logMe('ends Action phase.');
+            this.playCoins();
+            this.turnBuyPhase();
+            return;
+        }
 
 		var match = /^card\[(\d+)\]/.exec(key);
 		if(match) {
@@ -182,6 +183,32 @@ dom.player.prototype.runRules_ = function() {
 	rule(this, dom.utils.bind(this.runRules_, this));
 };
 
+dom.player.prototype.runBuyRules_ = function() {
+    if(this.rules_.length <= 0) {
+        this.turnBuyPhase();
+        return;
+    }
+
+    var rule = this.rules_.shift();
+    rule(this, dom.utils.bind(this.runBuyRules_, this));
+};
+
+dom.player.prototype.playCoins = function() {
+	for(var i = 0; i < this.hand_.length; ){
+		var card = this.hand_[i];
+		if(dom.cards.basicCoins[card.name]) {
+			this.removeFromHand(i);
+			this.inPlay_.push(card);
+			this.coin += dom.cards.treasureValues[card.name];
+            if(card.name == 'Copper') {
+                this.coin += this.game_.coppersmiths; // worth an extra 1 for each Coppersmith.
+            }
+		} else {
+			i++;
+		}
+	}
+};
+
 
 dom.player.prototype.turnBuyPhase = function() {
 	this.phase_ = dom.player.TurnPhases.BUY;
@@ -191,36 +218,62 @@ dom.player.prototype.turnBuyPhase = function() {
 		return;
 	}
 
-	// first go through the hand and use up any treasure cards
-	for(var i = 0; i < this.hand_.length; ){
-		var card = this.hand_[i];
-		if(card.types['Treasure']) {
-			this.removeFromHand(i);
-			this.discards_.push(card);
-			this.coin += dom.cards.treasureValues[card.name];
-            if(card.name == 'Copper') {
-                this.coin += this.game_.coppersmiths; // worth an extra 1 for each Coppersmith.
-            }
-		} else {
-			i++;
-		}
-	}
-
 	var p = this;
-	dom.utils.gainCardDecision(this, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
-		'Buys: ' + this.buys,
-		'Coin: ' + this.coin
-	], function(card) { return p.game_.cardCost(card) <= p.coin; },
-	function(repeat) {
-		return dom.utils.decisionHelper(
-			function() { p.turnCleanupPhase(); },
-			function(index) {
-				p.buyCard(index, false);
-				p.turnBuyPhase();
-			},
-			function() { repeat(); });
-	});
 
+    var gainCard = function() {
+        dom.utils.gainCardDecision(p, 'Buy cards or end your turn.', 'Done buying. End your turn.', [
+            'Buys: ' + p.buys,
+            'Coin: ' + p.coin
+        ], function(card) { return p.game_.cardCost(card) <= p.coin; },
+        function(repeat) {
+            return dom.utils.decisionHelper(
+                function() { p.turnCleanupPhase(); },
+                function(index) {
+                    p.buyCard(index, false);
+                    p.turnBuyPhase();
+                },
+                function() { repeat(); });
+        });
+    };
+
+    var playTreasure = function() {
+        dom.utils.handDecision(p, 'Choose a treasure to play, or to buy a card.', 'Buy a card', function(c) { return c.types['Treasure']; }, function(index) {
+            var card = p.hand_[index];
+            p.removeFromHand(index);
+            p.inPlay_.push(card);
+            p.coin += dom.cards.treasureValues[card.name];
+
+            var rulesList;
+            if(typeof card.rules == 'object') { // array 
+                rulesList = card.rules;
+            } else {
+                rulesList = [ card.rules ]; // just a function
+            }
+
+            if(!rulesList) {
+                console.log('ERROR: Can\'t happen. No rules list.');
+                return;
+            }
+
+            // this card is for real, log it
+            p.logMe('plays ' + card.name + '.');
+
+            // gotta copy since we're going to consume them
+            p.rules_ = [];
+            for(var i = 0; i < rulesList.length; i++) {
+                p.rules_.push(rulesList[i]);
+            }
+            p.runBuyRules_(); // this calls turnBuyPhase when the rules are complete.
+        }, gainCard);
+    };
+
+    var handTreasures = this.hand_.filter(function(c) { return c.types['Treasure']; });
+
+    if(handTreasures.length) {
+        playTreasure();
+    } else {
+        gainCard();
+    }
 };
 
 
