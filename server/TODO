@@ -1,6 +1,3 @@
-- Fix Mine to be flexible now that there are more Treasure cards.
-
-- Replace 'Player N' with email addresses.
 - Turn counter
 - Some kind of notifications. What frameworks are out there? Email is a little slow, but easy to implement.
   - Is there any cross-platform notification system for iOS and Android devices? Anything that can be done without an app? Probably not.
@@ -14,3 +11,4 @@
     - Should be disabled now. Still not working on my Android.
 
 - Need to process "every other player" rules clockwise, rather than from 0.
+- Torturer choice needs to show what cards are in your hand.
