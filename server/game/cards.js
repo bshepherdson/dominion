@@ -2270,7 +2270,9 @@ dom.cards['Quarry'] = new dom.card('Quarry', { 'Treasure': 1 }, 4, 'Worth 1 Coin
 ]);
 
 
-//7	    Talisman	    Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.
+dom.cards['Talisman'] = new dom.card('Talisman', { 'Treasure': 1 }, 4, 'Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.', []);
+
+
 //8	    Worker's VillageProsperity	Action	        $4	+1 Card, +2 Actions, +1 Buy.
 
 dom.cards.starterDeck = function() {
@@ -2410,6 +2412,7 @@ dom.cards.treasureValues = {
     'Harem': 2,
     'Loan': 1,
     'Quarry': 1,
+    'Talisman': 1,
 };
 
 dom.cards.basicCoins = {

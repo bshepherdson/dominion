@@ -317,6 +317,13 @@ dom.player.prototype.buyCard = function(index, free) {
 				this.buyCard(this.game_.indexInKingdom('Curse'), true);
 			}
 		}
+
+        var talismans = this.inPlay_.filter(function(c) { return c.name == 'Talisman'; });
+        if(talismans.length && !inKingdom.card.types['Victory'] && this.game_.cardCost(inKingdom.card) <= 4) {
+            for(var i = 0; i < talismans.length; i++) {
+                this.buyCard(index, true);
+            }
+        }
 	}
 
     return true;
