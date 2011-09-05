@@ -2255,8 +2255,12 @@ dom.cards['Bishop'] = new dom.card('Bishop', { 'Action': 1 }, 4, '+1 Coin. +1 VP
 ]);
 
 
+dom.cards['Monument'] = new dom.card('Monument', { 'Action': 1 }, 4, '+2 Coin, +1 VP token.', [
+    rules.plusCoin(2),
+    rules.plusVP(1)
+]);
 
-//5	    Monument	    Prosperity	Action	        $4	+2 Coin; +1 VP token.
+
 //6	    Quarry	        Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, Action cards cost 2 Coin less, but not less than 0 Coin.
 //7	    Talisman	    Prosperity	Treasure	    $4	Worth 1 Coin. While this is in play, when you buy a card costing 4 Coin or less that is not a Victory card, gain a copy of it.
 //8	    Worker's VillageProsperity	Action	        $4	+1 Card, +2 Actions, +1 Buy.
